@@ -1,0 +1,4 @@
+include README.md
+recursive-include octoprint_ext_sensor_mgr/templates *
+recursive-include octoprint_ext_sensor_mgr/translations *
+recursive-include octoprint_ext_sensor_mgr/static *
