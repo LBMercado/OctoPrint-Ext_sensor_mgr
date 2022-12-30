@@ -1,0 +1,71 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Setup dev terminal",
+            "type": "shell",
+            "command": "source ../OctoPrint/venv-dev1/bin/activate",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "runOptions": {"runOn": "folderOpen"},
+        },
+        {
+            "label": "Install dev plugin",
+            "type": "shell",
+            "command": "source ../OctoPrint/venv-dev1/bin/activate && octoprint dev plugin:install",
+            "group": "build",
+        },
+        {
+            "label": "build-and-run",
+            "type": "shell",
+            "group": "build",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Install dev plugin",
+                "server-run"
+            ]
+        },
+        {
+            "label": "server-run",
+            "type": "shell",
+            "command": "source ../OctoPrint/venv-dev1/bin/activate && octoprint serve",
+            "isBackground": true,
+
+            "problemMatcher": [
+                {
+                    "pattern": [
+                      {
+                        "regexp": ".",
+                        "file": 1,
+                        "location": 2,
+                        "message": 3
+                      }
+                    ],
+                    "background": {
+                      "activeOnStart": true,
+                      "beginsPattern": ".",
+                      "endsPattern": ".",
+                    }
+                }
+            ]
+        },
+        {
+            "label": "kill-tasks",
+            "type": "shell",
+            "command": "echo ${input:terminate}",
+            "problemMatcher": []
+        },
+    ],
+    "inputs": [
+        {
+            "id": "terminate",
+            "type": "command",
+            "command": "workbench.action.tasks.terminate",
+            "args": "terminateAll"
+        }
+    ]
+}
