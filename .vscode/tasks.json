@@ -14,7 +14,7 @@
             "runOptions": {"runOn": "folderOpen"},
         },
         {
-            "label": "Install dev plugin",
+            "label": "build-plugin",
             "type": "shell",
             "command": "source ../OctoPrint/venv-dev1/bin/activate && octoprint dev plugin:install",
             "group": "build",
@@ -25,7 +25,7 @@
             "group": "build",
             "dependsOrder": "sequence",
             "dependsOn": [
-                "Install dev plugin",
+                "build-plugin",
                 "server-run"
             ]
         },
