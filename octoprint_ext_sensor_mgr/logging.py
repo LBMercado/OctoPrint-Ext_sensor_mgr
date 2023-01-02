@@ -1,0 +1,34 @@
+from enum import Enum
+
+
+class ContextLevel(Enum):
+    DEBUG = 1,
+    WARNING = 2,
+    ERROR = 3
+
+class Logging:
+    def __init__(self, logger: None = None, enable_debug = False):
+        self.logger = logger # ignored, use native print() always
+        self.enable_debug = enable_debug
+        
+    def _debug(self, text: str, context_level: ContextLevel):
+        print(text)
+    
+    def debug(self, context: str, ref_object: object = None, context_level: ContextLevel = ContextLevel.DEBUG):
+        if ref_object is not None:
+            text = context + ": " + str(ref_object)
+        else:
+            text = context
+        if self.enable_debug:
+            self._debug(text, context_level)
+        return text
+            
+class OctoprintLogging(Logging):
+    def __init__(self, logger, enable_debug = False):
+        super().__init__(logger, enable_debug)
+    
+    def _debug(self, text: str, context_level: ContextLevel):
+        if context_level == ContextLevel.DEBUG:
+            self.logger.debug(text)
+        elif context_level == ContextLevel.ERROR:
+            self.logger.error(text)
