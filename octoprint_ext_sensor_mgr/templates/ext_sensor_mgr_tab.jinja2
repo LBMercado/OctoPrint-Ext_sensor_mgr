@@ -1,0 +1,25 @@
+<div class="row-fluid" data-bind="foreach: chartCfgList">
+    <canvas data-bind="attr: { id: 'ext_sensor_mgr_sensor_graph' + $index() }" style="width: 100%"></canvas>
+</div>
+
+<div class="control-group" data-bind="if: sensorList().length > 0">
+    <label class="control-label"> {{ _('Selected Sensor')|edq }} </label>
+    <div class="controls">
+        <select class="input-block-level" data-bind="value: selectedSensorId, options: sensorList, optionsText: function(item) { return item.config.name.value }, optionsValue: 'sensorId', valueAllowUnset: true, event: { change: $root.resetChart}"></select>
+    </div>
+</div>
+
+<table class="table table-bordered" data-bind="if: sensorList().length > 0">
+    <tbody data-bind="foreach: sensorList">
+        <tr data-bind="if: output">
+            <td>
+                <p class="badge" data-bind="text: sensorType.name"></p>
+                <p data-bind="text: config.name.value"></p>
+            </td>
+            <td data-bind="foreach: output" class="sensor-reading-grid">
+                <p data-bind="text: label"> </p>
+                <p data-bind="text: $root.fmtSensorReadingCb(unit, val)"> </p>
+            </td>
+        </tr>
+    </tbody>
+</table>
