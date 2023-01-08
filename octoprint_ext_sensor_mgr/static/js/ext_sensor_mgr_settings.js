@@ -5,7 +5,7 @@
  * License: AGPLv3
  */
 $(function () {
-    function ExtSensorMgrSettingsViewModel(parameters) {
+    function Ext_sensor_mgrSettingsViewModel(parameters) {
         var self = this;
 
         // injected view models
@@ -20,11 +20,11 @@ $(function () {
             config = self.selectedSupportedConfig();
             if (config) {
                 return Object.keys(config).map((val) => {
-                    self._log(info = 'selectedSupportedConfigList ko computed: given config for key = ' + val, obj = config);
+                    self._log(info = 'selectedSupportedConfigList ko computed: given config for key = ' + val, obj = config, enable = self._do_log);
                     return {
                         'param': val,
-                        'type': config[val].value_list.length > 0 ? self.CONFIG_DATA_TYPE.Options : self.CONFIG_DATA_TYPE.Text,
-                        'label': config[val].label,
+                        'type': config[val].value_list.length > 0 ? self._configDataType.Options : self._configDataType.Text,
+                        'label': null, // TODO
                     };
                 });
             } else {
@@ -36,14 +36,14 @@ $(function () {
         self._null_sensor_type = null;
         self.do_subst_mock_sensor = false
         self._do_log = true;
-        self.CONFIG_DATA_TYPE = {
+        self._configDataType = {
             Text: 1,
             Options: 2
         };
 
         // functions / methods
         self.toggleSensorButtonCss = function (data) {
-            self._log(info = 'toggleSensorButtonCss: enabled = ' + data.enabled());
+            self._log(info = 'toggleSensorButtonCss: enabled = ' + data.enabled(), enable = self._do_log);
             return {
                 'fa': true,
                 'fa-toggle-on': data.enabled(),
@@ -53,23 +53,22 @@ $(function () {
 
         self.toggleSensor = function (data) {
             data.enabled(!data.enabled());
-            self._log(info = 'toggleSensor: new enabled =' + data.enabled());
+            self._log(info = 'toggleSensor: new enabled =' + data.enabled(), enable = self._do_log);
         };
 
         self.addSensor = function () {
-            var sensor = { 'sensorType': ko.observable(self._null_sensor_type), 'enabled': ko.observable(false), 
-            'sensorId': ko.observable(true), 'config': { 'name': { 'value': ko.observable() } } };
+            var sensor = { 'sensorType': ko.observable(self._null_sensor_type), 'enabled': ko.observable(false), 'sensorId': ko.observable(true) };
             self.sensorList.push(sensor);
-            self._log(info = 'addSensor: sensor count = ' + self.sensorList().length);
+            self._log(info = 'addSensor: sensor count = ' + self.sensorList().length, enable = self._do_log);
         };
 
         self.removeSensor = function (data) {
-            self._log(info = 'remove sensor', obj = data);
+            self._log(info = 'remove sensor', obj = data, enable = self._do_log);
             self.sensorList.remove(data);
             if (self.selectedSensor() == data) {
                 self.selectedSensor(null);
             }
-            self._log(info = 'removeSensor: sensor count = ' + self.sensorList().length);
+            self._log(info = 'removeSensor: sensor count = ' + self.sensorList().length, enable = self._do_log);
         };
 
         self.isSelectedSensorCb = function (data) {
@@ -80,8 +79,8 @@ $(function () {
 
         self.matchingParamConfigCb = function (supp_config, sensorConfig) {
             return ko.computed(function () {
-                self._log(info = 'matchingParamConfigCb: (1) supp_config = ', obj = supp_config);
-                self._log(info = 'matchingParamConfigCb: (2) sensorConfig = ', obj = sensorConfig);
+                self._log(info = 'matchingParamConfigCb: (1) supp_config = ', obj = supp_config, enable = self._do_log);
+                self._log(info = 'matchingParamConfigCb: (2) sensorConfig = ', obj = sensorConfig, enable = self._do_log);
                 if (supp_config.type == sensorConfig[supp_config.param].type()){
                     return sensorConfig[supp_config.param];
                 }
@@ -91,7 +90,7 @@ $(function () {
 
         self.init_config_param = function (config_param, value = null) {
             config_param['value'] = value;
-            config_param['type'] = config_param.value_list.length > 0 ? self.CONFIG_DATA_TYPE.Options : self.CONFIG_DATA_TYPE.Text;
+            config_param['type'] = config_param.value_list.length > 0 ? self._configDataType.Options : self._configDataType.Text;
 
             for (param in config_param){
                 config_param[param] = ko.observable(config_param[param]);
@@ -104,13 +103,13 @@ $(function () {
             };
             config = null;
 
-            self._log(info = 'prop_sensor_config: supported config list', obj = supportedConfig);
-            self._log(info = 'prop_sensor_config: prop to sensor', obj = sensor);
+            self._log(info = 'prop_sensor_config: supported config list', obj = supportedConfig, enable = self._do_log);
+            self._log(info = 'prop_sensor_config: prop to sensor', obj = sensor, enable = self._do_log);
 
             if (!sensor.hasOwnProperty('config')) {
                 sensor['config'] = {...supportedConfig};
                 config = sensor.config;
-                self._log(info = 'prop_sensor_config: new config list', obj = config);
+                self._log(info = 'prop_sensor_config: new config list', obj = config, enable = self._do_log);
                 for (k in config) {
                     self.init_config_param(config[k]);
                 }
@@ -123,19 +122,19 @@ $(function () {
                 };
             };
             self.selectedSupportedConfig(supportedConfig);
-            self._log(info = 'prop_sensor_config: config list ko computed', obj = self.selectedSupportedConfigList());
-            self._log(info = 'prop_sensor_config: processed config list', obj = config);
+            self._log(info = 'prop_sensor_config: config list ko computed', obj = self.selectedSupportedConfigList(), enable = self._do_log);
+            self._log(info = 'prop_sensor_config: processed config list', obj = config, enable = self._do_log);
         };
 
         self.mdfSensor = function () {
             var sensor = self.selectedSensor()
-            self._log(info = 'configure sensor', obj = sensor);
+            self._log(info = 'configure sensor', obj = sensor, enable = self._do_log);
             if (sensor){
                 self.getCommandParamList(sensor.sensorType())
                     .done((res) => {
-                        self._log(info = 'API command config param list for sensor result', obj = res);
+                        self._log(info = 'API command config param list for sensor result', obj = res, enable = self._do_log);
                         self.prop_sensor_config(sensor, res);
-                        self._log(info = 'Modify sensor post:  ', obj = sensor);
+                        self._log(info = 'Modify sensor post:  ', obj = sensor, enable = self._do_log);
                         $("#SensorManagerConfigure").modal("show");
                     });
             };
@@ -147,7 +146,7 @@ $(function () {
 
         self.onSelectSensor = function (data) {
             self.selectedSensor(data);
-            self._log(info = 'selected sensor', obj = data);
+            self._log(info = 'selected sensor', obj = data, enable = self._do_log);
         };
         
         self.onBeforeBinding = function () {
@@ -156,25 +155,25 @@ $(function () {
             
             var sensorList = self.settingsVM.settings.plugins.ext_sensor_mgr.active_sensor_list();
             self.sensorList(sensorList);
-            self._log(info = 'onBeforeBinding: active sensors: ', obj = self.sensorList());
+            self._log(info = 'onBeforeBinding: active sensors: ', obj = self.sensorList(), enable = self._do_log);
             sensorList = self.settingsVM.settings.plugins.ext_sensor_mgr.supported_sensor_list();
             self.supportedSensorList(sensorList);
             self._null_sensor_type = self.supportedSensorList().filter((val) => {
                 return val.value() == -1
             })[0];
-            self._log(info = 'onBeforeBinding: null sensor defined as: ', obj = self._null_sensor_type);
-            self._log(info = 'onBeforeBinding: supported sensors: ', obj = self.supportedSensorList());
+            self._log(info = 'onBeforeBinding: null sensor defined as: ', obj = self._null_sensor_type, enable = self._do_log);
+            self._log(info = 'onBeforeBinding: supported sensors: ', obj = self.supportedSensorList(), enable = self._do_log);
         };
 
         self.onSettingsBeforeSave = function () {
-            self._log(info = 'onSettingsBeforeSave: old active sensors: ', obj = self.settingsVM.settings.plugins.ext_sensor_mgr.active_sensor_list());
-            self._log(info = 'onSettingsBeforeSave: new active sensors: ', obj = self.sensorList());
+            self._log(info = 'onSettingsBeforeSave: old active sensors: ', obj = self.settingsVM.settings.plugins.ext_sensor_mgr.active_sensor_list(), enable = self._do_log);
+            self._log(info = 'onSettingsBeforeSave: new active sensors: ', obj = self.sensorList(), enable = self._do_log);
             self.settingsVM.settings.plugins.ext_sensor_mgr.active_sensor_list(self.sensorList());
         };
 
-        self._log = function (info, obj = undefined) {
-            if (self._do_log) {
-                console.log("ExtSensorMgrSettingsViewModel: " + info);
+        self._log = function (info, obj = undefined, enable = false) {
+            if (enable) {
+                console.log(info);
                 if (obj !== undefined) {
                     console.log(obj);
                 }
@@ -182,9 +181,15 @@ $(function () {
         };
     }
 
+    /* view model class, parameters for constructor, container to bind to
+     * Please see http://docs.octoprint.org/en/master/plugins/viewmodels.html#registering-custom-viewmodels for more details
+     * and a full list of the available options.
+     */
     OCTOPRINT_VIEWMODELS.push({
-        construct: ExtSensorMgrSettingsViewModel,
+        construct: Ext_sensor_mgrSettingsViewModel,
+        // ViewModels your plugin depends on, e.g. loginStateViewModel, settingsViewModel, ...
         dependencies: ["settingsViewModel"],
+        // Elements to bind to, e.g. #settings_plugin_ext_sensor_mgr, #tab_plugin_ext_sensor_mgr, ...
         elements: ["#settings_plugin_ext_sensor_mgr"]
     });
 });
