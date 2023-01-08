@@ -26,7 +26,7 @@ class SensorManager:
         self._logger.debug(context="SensorManager.handle_msg: check existing sensor?", ref_object=sensor is not None)
         self._logger.debug(context="SensorManager.handle_msg: parsed config", ref_object=config)
         
-        # new sensor
+        # new or existing unloaded sensor
         if sensor is None:
             constructor = sensor_cls(sensor_type, is_test=self._is_mock_test)
             if constructor is None:
@@ -35,7 +35,7 @@ class SensorManager:
                 self._logger.debug(context="SensorManager.handle_msg: new sensor - (3) is mock test", ref_object=self._is_mock_test, context_level=ContextLevel.ERROR)
                 return
             sensor = constructor()
-            sensor.id = self._gen_sensor_id()
+            sensor.id = sensor_id if sensor_id is not None else self._gen_sensor_id()
             self._logger.debug(context="SensorManager.handle_msg: constructed new sensor", ref_object=sensor)
         sensor.toggle(enabled)
         sensor.configure(config)
