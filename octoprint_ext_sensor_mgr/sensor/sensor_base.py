@@ -1,15 +1,20 @@
 from collections import deque
+from typing import Union
+from datetime import datetime
 from octoprint_ext_sensor_mgr.sensor.config_property import ConfigProperty
-
+from octoprint_ext_sensor_mgr.sensor.sensor_out_type import SensorOutputType
 
 class Sensor:
     _config_params = dict()
     _is_config_params_init = False
+    output_type: SensorOutputType
 
     def __init__(self) -> None:
         super().__init__()
         self.enabled = False
         self.is_configured = False
+        self.output_type = None
+        self.output_unit_seq = ()
         self.id = None
         self.type = None
         self.init_history_reading()
@@ -26,7 +31,9 @@ class Sensor:
         cls = cls if cls is not None else Sensor
         if not cls._is_config_params_init:
             cls._config_params['max_readings'] = ConfigProperty(
-                data_type=type(int), value_list=[], default_value=1)
+                data_type=type(int), value_list=[], default_value=1, label='Maximum number of readings')
+            cls._config_params['name'] = ConfigProperty(
+                data_type=type(str), value_list=[], default_value='New Sensor', label='Sensor Name')
             cls._is_config_params_init = True
         return cls._config_params
 
@@ -46,6 +53,9 @@ class Sensor:
         except TypeError:
             return value
 
+    def output_config(self) -> dict():
+        raise NotImplementedError()
+    
     def init_history_reading(self, max_readings=1):
         self.max_readings = max_readings
         self.past_readings = deque(maxlen=self.max_readings)
@@ -56,7 +66,14 @@ class Sensor:
     def allow_history(self):
         return self.max_readings > 1
 
-    def _add_reading(self, reading):
+    def _add_reading(self, reading: Union[dict, any]):
+        if isinstance(reading, type(dict)):
+            if 'value' not in reading:
+                return
+        else:
+            reading = dict(value=reading)
+        
+        reading['timestamp'] = datetime.timestamp(datetime.now())
         self.past_readings.append(reading)
 
     def reset(self):
@@ -82,13 +99,18 @@ class Sensor:
     def _read(self):
         raise NotImplementedError()
 
+    def _postprc_read(self, reading):
+        raise NotImplementedError()
+
     def read(self):
         if self.is_configured and self.enabled:
-            return self._read(self)
+            reading = self._postprc_read(self._read())
+            self._add_reading(reading)
+            return reading
 
     def _write(self):
         raise NotImplementedError()
 
     def write(self):
         if self.is_configured and self.enabled:
-            return self._write(self)
+            return self._write()
