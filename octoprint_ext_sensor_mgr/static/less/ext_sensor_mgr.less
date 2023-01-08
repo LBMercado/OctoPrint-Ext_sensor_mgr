@@ -1,1 +1,24 @@
-// TODO: Put your plugin's LESS here, have it generated to ../css.
+.sensor-reading-grid {
+    display: grid;
+    grid-template-columns: auto auto;
+}
+
+table {
+    th,
+    td {
+      &.settings_ext_sensor_mgr_checkbox {
+        text-align: center;
+        width: 5%;
+  
+        input[type="checkbox"] {
+          margin-top: 0;
+        }
+      }
+
+      &.settings_ext_sensor_mgr_actions {
+        text-align: center;
+        width: 10%;
+      }
+    }
+  }
+  

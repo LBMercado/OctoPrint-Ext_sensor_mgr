@@ -1,16 +1,9 @@
 # coding=utf-8
 from __future__ import absolute_import
-from typing import List
-
-# (Don't forget to remove me)
-# This is a basic skeleton for your plugin's __init__.py. You probably want to adjust the class name of your plugin
-# as well as the plugin mixins it's subclassing from. This is really just a basic skeleton to get you started,
-# defining your plugin as a template plugin, settings and asset plugin. Feel free to add or remove mixins
-# as necessary.
-#
-# Take a look at the documentation on what other plugin mixins are available.
-
 import octoprint.plugin
+import octoprint.util
+import flask
+from typing import List
 from octoprint_ext_sensor_mgr.logging import OctoprintLogging
 from octoprint_ext_sensor_mgr.sensor.sensor_base import Sensor
 from octoprint_ext_sensor_mgr.sensor.util import determine_sensor_config, transform_sensor_config
@@ -18,7 +11,7 @@ from octoprint_ext_sensor_mgr.sensor_mngr import SensorManager
 from octoprint_ext_sensor_mgr.sensor.sensor_type import SensorType, SUPPORTED_SENSOR_LIST
 
 
-class Ext_sensor_mgrPlugin(octoprint.plugin.SettingsPlugin,
+class ExtSensorMgrPlugin(octoprint.plugin.SettingsPlugin,
                            octoprint.plugin.AssetPlugin,
                            octoprint.plugin.TemplatePlugin,
                            octoprint.plugin.StartupPlugin,
@@ -39,20 +32,28 @@ class Ext_sensor_mgrPlugin(octoprint.plugin.SettingsPlugin,
         self._log("init_sensors: interface-enabled sensors = ",
             self.sensor_mgr.sensor_list())
     
+    def read_sensors(self):
+        for sensor in self.sensor_mgr.sensor_list():
+            sensor.read()
+    
     # ~~ StartupPlugin mixin
     def on_after_startup(self):
         self._log("Plugin on startup called")
         sensor_seed_id = self._settings.get(["sensor_id_seed"])
+        read_freq_s = float(self._settings.get(["read_freq_s"]))
         enable_logging = self._settings.get(["enable_logging"])
         enable_mock_test = self._settings.get(["is_mock_test"])
         self.sensor_mgr = SensorManager(enable_mock_test, sensor_seed_id, OctoprintLogging(self._logger, enable_logging))
         self.init_sensors(self._settings.get(["active_sensor_list"]))
+        self._bg_read_sensor = octoprint.util.RepeatedTimer(interval=read_freq_s, function=self.read_sensors, run_first=False)
+        self._bg_read_sensor.start()
 
     # ~~ SettingsPlugin mixin
     def get_settings_defaults(self):
         return dict(
             active_sensor_list=[],
             sensor_id_seed=1,
+            read_freq_s=2,
             is_mock_test=False,
             enable_logging=False,
             supported_sensor_list=[dict(value=s.value, name=s.name)
@@ -89,10 +90,11 @@ class Ext_sensor_mgrPlugin(octoprint.plugin.SettingsPlugin,
 
     # ~~ AssetPlugin mixin
     def get_assets(self):
-        # Define your plugin's asset files to automatically include in the
-        # core UI here.
+        js_dep = ["js/dep/chart.js/dist/chart.umd.js", "js/dep/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.min.js",
+                  "js/dep/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"]
+        
         return {
-            "js": ["js/ext_sensor_mgr.js", "js/ext_sensor_mgr_settings.js"],
+            "js": ["js/ext_sensor_mgr.js", "js/ext_sensor_mgr_settings.js", *js_dep],
             "css": ["css/ext_sensor_mgr.css"],
             "less": ["less/ext_sensor_mgr.less"]
         }
@@ -100,7 +102,7 @@ class Ext_sensor_mgrPlugin(octoprint.plugin.SettingsPlugin,
     # ~~ TemplatePlugin mixin
     def get_template_configs(self):
         return [
-            # TODO: dict(type="tab", template="ext_sensor_mgr_tab.jinja2"),
+            dict(type="tab", template="ext_sensor_mgr_tab.jinja2"),
             dict(type="settings", template="ext_sensor_mgr_settings.jinja2")
         ]
 
@@ -114,11 +116,30 @@ class Ext_sensor_mgrPlugin(octoprint.plugin.SettingsPlugin,
             except ValueError:
                 return None
             return transform_sensor_config(determine_sensor_config(sensorType=sensorType, is_test=self._settings.get(["is_mock_test"])))
+        elif command == "read_sensor":
+            sensor_id = int(data.get('sensor_id'))
+            sensor = self.sensor_mgr.sensor(sensor_id)
+            if sensor is not None:
+                return flask.jsonify(sensor.read())
+        elif command == "hist_reading_list":
+           sensor_id = int(data.get('sensor_id'))
+           sensor = self.sensor_mgr.sensor(sensor_id)
+           if sensor is not None and sensor.allow_history:
+                return flask.jsonify(sensor.history_reading_list())
+        elif command == "sensor_output_config":
+            sensor_id = int(data.get('sensor_id'))
+            sensor = self.sensor_mgr.sensor(sensor_id)
+            if sensor is not None:
+                return flask.jsonify(sensor.output_config())
+
 
     # ~~ SimpleApiPlugin hook
     def get_api_commands(self):
         return dict(
-            config_param_list=["sensor_type_id"]
+            config_param_list=["sensor_type_id"],
+            read_sensor=["sensor_id"],
+            hist_reading_list=["sensor_id"],
+            sensor_output_config=["sensor_id"],
         )
 
     # ~~ Softwareupdate hook
@@ -166,7 +187,7 @@ __plugin_pythoncompat__ = ">=3,<4"  # Only Python 3
 
 def __plugin_load__():
     global __plugin_implementation__
-    __plugin_implementation__ = Ext_sensor_mgrPlugin()
+    __plugin_implementation__ = ExtSensorMgrPlugin()
 
     global __plugin_hooks__
     __plugin_hooks__ = {
