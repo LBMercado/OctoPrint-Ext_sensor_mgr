@@ -18,6 +18,9 @@
             "type": "shell",
             "command": "source ../OctoPrint/venv-dev1/bin/activate && octoprint dev plugin:install",
             "group": "build",
+            "dependsOn": [
+                "compile-less-sources"
+            ]
         },
         {
             "label": "build-and-run",
@@ -28,6 +31,12 @@
                 "build-plugin",
                 "server-run"
             ]
+        },
+        {
+            "label": "compile-less-sources",
+            "type": "shell",
+            "command": "lessc octoprint_ext_sensor_mgr/static/less/ext_sensor_mgr.less  octoprint_ext_sensor_mgr/static/css/ext_sensor_mgr.css",
+            "problemMatcher": []
         },
         {
             "label": "server-run",
