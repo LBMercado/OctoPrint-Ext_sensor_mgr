@@ -1,3 +1,4 @@
+octoprint_ext_sensor_mgr/static/js/dep/*
 *.pyc
 *.swp
 .idea
