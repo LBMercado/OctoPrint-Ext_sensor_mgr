@@ -1,1 +1,18 @@
-/* TODO: Have your plugin's CSS files generated to here. */
+.sensor-reading-grid {
+  display: grid;
+  grid-template-columns: auto auto;
+}
+table th.settings_ext_sensor_mgr_checkbox,
+table td.settings_ext_sensor_mgr_checkbox {
+  text-align: center;
+  width: 5%;
+}
+table th.settings_ext_sensor_mgr_checkbox input[type="checkbox"],
+table td.settings_ext_sensor_mgr_checkbox input[type="checkbox"] {
+  margin-top: 0;
+}
+table th.settings_ext_sensor_mgr_actions,
+table td.settings_ext_sensor_mgr_actions {
+  text-align: center;
+  width: 10%;
+}
