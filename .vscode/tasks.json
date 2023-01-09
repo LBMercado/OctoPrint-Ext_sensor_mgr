@@ -19,7 +19,20 @@
             "command": "source ../OctoPrint/venv-dev1/bin/activate && octoprint dev plugin:install",
             "group": "build",
             "dependsOn": [
-                "compile-less-sources"
+                "compile-less-sources",
+                "build-dep"
+            ]
+        },
+        {
+            "label": "build-dep",
+            "type": "shell",
+            "command": "source ../OctoPrint/venv-dev1/bin/activate && octoprint dev plugin:install",
+            "group": "build",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "setup-js-dep",
+                "mkdir-js-dep",
+                "copy-js-dep"
             ]
         },
         {
@@ -66,6 +79,24 @@
             "label": "kill-tasks",
             "type": "shell",
             "command": "echo ${input:terminate}",
+            "problemMatcher": []
+        },
+        {
+            "label": "setup-js-dep",
+            "type": "shell",
+            "command": "npm i chart.js && npm i date-fns chartjs-adapter-date-fns",
+            "problemMatcher": []
+        },
+        {
+            "label": "mkdir-js-dep",
+            "type": "shell",
+            "command": "mkdir -p octoprint_ext_sensor_mgr/static/js/dep",
+            "problemMatcher": []
+        },
+        {
+            "label": "copy-js-dep",
+            "type": "shell",
+            "command": "cp -r node_modules/chart.js octoprint_ext_sensor_mgr/static/js/dep/chart.js && cp -r node_modules/chartjs-adapter-date-fns octoprint_ext_sensor_mgr/static/js/dep/chartjs-adapter-date-fns",
             "problemMatcher": []
         },
     ],
