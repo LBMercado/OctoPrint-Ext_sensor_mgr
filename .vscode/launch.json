@@ -22,5 +22,14 @@
             "preLaunchTask": "build-and-run",
             "postDebugTask": "kill-tasks"
         },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Fast build + launch Chrome against localhost",
+            "url": "http://localhost:5000",
+            "webRoot": "${workspaceFolder}",
+            "preLaunchTask": "fast-build-and-run",
+            "postDebugTask": "kill-tasks"
+        },
     ]
 }

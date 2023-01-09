@@ -24,6 +24,15 @@
             ]
         },
         {
+            "label": "build-plugin-quick",
+            "type": "shell",
+            "command": "source ../OctoPrint/venv-dev1/bin/activate && octoprint dev plugin:install",
+            "group": "build",
+            "dependsOn": [
+                "compile-less-sources",
+            ]
+        },
+        {
             "label": "build-dep",
             "type": "shell",
             "command": "source ../OctoPrint/venv-dev1/bin/activate && octoprint dev plugin:install",
@@ -42,6 +51,16 @@
             "dependsOrder": "sequence",
             "dependsOn": [
                 "build-plugin",
+                "server-run"
+            ]
+        },
+        {
+            "label": "fast-build-and-run",
+            "type": "shell",
+            "group": "build",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "build-plugin-quick",
                 "server-run"
             ]
         },
