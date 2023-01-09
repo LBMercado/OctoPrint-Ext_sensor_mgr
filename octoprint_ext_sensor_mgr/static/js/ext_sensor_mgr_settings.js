@@ -29,7 +29,7 @@ $(function () {
                 });
             } else {
                 return [];
-            };
+            }
         }, self);
 
         // others
@@ -57,10 +57,13 @@ $(function () {
         };
 
         self.addSensor = function () {
-            var sensor = { 'sensorType': ko.observable(self._null_sensor_type), 'enabled': ko.observable(false), 
-            'sensorId': ko.observable(true), 'config': { 'name': { 'value': ko.observable() } } };
+            var sensor = {
+                'sensorType': ko.observable(self._null_sensor_type), 'enabled': ko.observable(false),
+                'sensorId': ko.observable(), 'config': { 'name': { 'value': ko.observable('New Sensor') } }
+            };
             self.sensorList.push(sensor);
-            self._log(info = 'addSensor: sensor count = ' + self.sensorList().length);
+            self._log(info = 'addSensor: (1) new sensor = ' + sensor);
+            self._log(info = 'addSensor: (2) sensor count = ' + self.sensorList().length);
         };
 
         self.removeSensor = function (data) {
@@ -90,10 +93,10 @@ $(function () {
         };
 
         self.init_config_param = function (config_param, value = null) {
-            config_param['value'] = value;
-            config_param['type'] = config_param.value_list.length > 0 ? self.CONFIG_DATA_TYPE.Options : self.CONFIG_DATA_TYPE.Text;
+            config_param.value = value;
+            config_param.type = config_param.value_list.length > 0 ? self.CONFIG_DATA_TYPE.Options : self.CONFIG_DATA_TYPE.Text;
 
-            for (param in config_param){
+            for (const param in config_param){
                 config_param[param] = ko.observable(config_param[param]);
             }
         };
@@ -101,34 +104,34 @@ $(function () {
         self.prop_sensor_config = function (sensor, supportedConfig) {
             if (!supportedConfig){
                 return;
-            };
+            }
             config = null;
 
             self._log(info = 'prop_sensor_config: supported config list', obj = supportedConfig);
             self._log(info = 'prop_sensor_config: prop to sensor', obj = sensor);
 
             if (!sensor.hasOwnProperty('config')) {
-                sensor['config'] = {...supportedConfig};
+                sensor.config = {...supportedConfig};
                 config = sensor.config;
                 self._log(info = 'prop_sensor_config: new config list', obj = config);
-                for (k in config) {
+                for (const k in config) {
                     self.init_config_param(config[k]);
                 }
             } else {
                 config = sensor.config;
-                for (k in supportedConfig) {
-                    item = {...supportedConfig[k]}
-                    self.init_config_param(item, config.hasOwnProperty(k) ? config[k].value() : null)
+                for (const k in supportedConfig) {
+                    item = {...supportedConfig[k]};
+                    self.init_config_param(item, config.hasOwnProperty(k) ? config[k].value() : null);
                     config[k] = item;
-                };
-            };
+                }
+            }
             self.selectedSupportedConfig(supportedConfig);
             self._log(info = 'prop_sensor_config: config list ko computed', obj = self.selectedSupportedConfigList());
             self._log(info = 'prop_sensor_config: processed config list', obj = config);
         };
 
         self.mdfSensor = function () {
-            var sensor = self.selectedSensor()
+            var sensor = self.selectedSensor();
             self._log(info = 'configure sensor', obj = sensor);
             if (sensor){
                 self.getCommandParamList(sensor.sensorType())
@@ -138,11 +141,36 @@ $(function () {
                         self._log(info = 'Modify sensor post:  ', obj = sensor);
                         $("#SensorManagerConfigure").modal("show");
                     });
-            };
+            }
         };
 
         self.getCommandParamList = function (sensorTypeKey) {
             return OctoPrint.simpleApiCommand('ext_sensor_mgr', 'config_param_list', { 'sensor_type_id': sensorTypeKey});
+        };
+
+        self.onSensorTypeChange = function (sensor) {
+            if (sensor) {
+                self.getCommandParamList(sensor.sensorType())
+                    .done((res) => {
+                        self.prop_sensor_config(sensor, res);
+                    });
+            }
+        };
+
+        self.enableSensorCb = function (sensor) {
+            return ko.pureComputed(() => {
+                return sensor() && sensor().sensorType() != self._null_sensor_type.value();
+            });
+        };
+
+        self.disableSensorConfigCb = function (sensor) {
+            return ko.pureComputed(() => {
+                if (!ko.isObservable(sensor) || !sensor()){
+                    return true;
+                }
+
+                return sensor().sensorType() == self._null_sensor_type.value();
+            });
         };
 
         self.onSelectSensor = function (data) {
@@ -160,7 +188,7 @@ $(function () {
             sensorList = self.settingsVM.settings.plugins.ext_sensor_mgr.supported_sensor_list();
             self.supportedSensorList(sensorList);
             self._null_sensor_type = self.supportedSensorList().filter((val) => {
-                return val.value() == -1
+                return val.value() == -1;
             })[0];
             self._log(info = 'onBeforeBinding: null sensor defined as: ', obj = self._null_sensor_type);
             self._log(info = 'onBeforeBinding: supported sensors: ', obj = self.supportedSensorList());

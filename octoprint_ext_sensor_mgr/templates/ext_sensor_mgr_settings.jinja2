@@ -16,7 +16,7 @@
             </td>
             <td>
                 <select name="sensor"
-                    data-bind="options: $root.supportedSensorList, optionsText: 'name', optionsValue: 'value', value: sensorType">
+                    data-bind="options: $root.supportedSensorList, optionsText: 'name', optionsValue: 'value', value: sensorType, event: { change: function() { return $root.onSensorTypeChange($data)}}">
                 </select>
             </td>
             <td>
@@ -34,7 +34,7 @@
 
 <div>
     <button class="btn btn-block" data-bind="click: function() { $root.addSensor() }"> {{ _('Add') }}</button>
-    <button class="btn btn-block" data-bind="enable: selectedSensor, click: function() { $root.mdfSensor() }"> {{
+    <button class="btn btn-block" data-bind="enable: $root.enableSensorCb(selectedSensor), click: function() { $root.mdfSensor() }"> {{
         _('Configure')
         }}</button>
 </div>
@@ -75,16 +75,19 @@
     </div>
 </div>
 
+<!-- ko ifnot: $root.disableSensorConfigCb(selectedSensor) -->
 <div id="SensorManagerConfigure" data-bind="with: selectedSensor" class="modal hide fade-in">
     <div class="modal-header">
         <a href="#" class="close" data-dismiss="modal" aria-hidden="true">&times;</a>
         <h3>{{ _('Configuration') }}</h3>
     </div>
+    
     <div class="modal-body" data-bind="foreach: $root.selectedSupportedConfigList">
         <div class="control-group" data-bind="if: type == $root.CONFIG_DATA_TYPE.Options">
             <label class="control-label" data-bind="text: label ?? param"></label>
             <div class="controls" data-bind="with: $root.matchingParamConfigCb($data, $parent.config)">
-                <select class="input-block-level" data-bind="value: value, options: value_list, valueAllowUnset: true"></select>
+                <select class="input-block-level"
+                    data-bind="value: value, options: value_list, valueAllowUnset: true"></select>
             </div>
         </div>
         <div class="control-group" data-bind="if: type == $root.CONFIG_DATA_TYPE.Text">
@@ -93,18 +96,6 @@
                 <input type="text" class="input-block-level" data-bind="value: value" />
             </div>
         </div>
-        {# <div class="control-group">
-            <label class="control-label">{{ _('Type') }}</label>
-            <div class="controls">
-                <select data-bind="value: type, options: ['gcode', 'system'], optionsCaption: 'Select Event Type', valueAllowUnset: true"></select>
-            </div>
-        </div>
-        <div class="control-group">
-            <label class="control-label">{{ _('Enabled') }}</label>
-            <div class="controls">
-                <input type="checkbox" data-bind="checked: enabled" />
-            </div>
-        </div> #}
     </div>
     <div class="modal-footer">
         <div class="row-fluid">
@@ -112,3 +103,4 @@
         </div>
     </div>
 </div>
+<!-- /ko -->

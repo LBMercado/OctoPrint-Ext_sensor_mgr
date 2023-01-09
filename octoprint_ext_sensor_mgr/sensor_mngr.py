@@ -15,11 +15,18 @@ class SensorManager:
         
         sensor_type = SensorType(int(msg['sensorType']))
         
+        
+        try:
+            sensor_id = int(msg['sensorId'])
+        except (TypeError, ValueError) as err:
+            if msg['sensorId'] is not None:
+                self._logger.debug(context="SensorManager.handle_msg: invalid sensor id provided, must be None or int", context_level=ContextLevel.ERROR)
+                return
+        sensor_id = msg['sensorId']
         if sensor_type == SensorType.NOT_SET:
             self._logger.debug(context="SensorManager.handle_msg: ignore unset sensor", context_level=ContextLevel.DEBUG)
             return
         
-        sensor_id = msg['sensorId']
         enabled = msg['enabled']
         config = parse_sensor_config(msg['config'])
         sensor = self.sensor(sensor_id)
