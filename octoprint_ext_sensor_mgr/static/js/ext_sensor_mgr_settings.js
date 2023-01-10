@@ -150,6 +150,9 @@ $(function () {
 
         self.onSensorTypeChange = function (sensor) {
             if (sensor) {
+                // wipe existing config
+                sensor.config = { 'name': sensor.config.name };
+
                 self.getCommandParamList(sensor.sensorType())
                     .done((res) => {
                         self.prop_sensor_config(sensor, res);
@@ -175,7 +178,7 @@ $(function () {
 
         self.onSelectSensor = function (data) {
             self.selectedSensor(data);
-            self._log(info = 'selected sensor', obj = data);
+            self._log(info = 'onSelectSensor: selected sensor', obj = data);
         };
         
         self.onBeforeBinding = function () {
@@ -202,9 +205,12 @@ $(function () {
 
         self._log = function (info, obj = undefined) {
             if (self._do_log) {
-                console.log("ExtSensorMgrSettingsViewModel: " + info);
+                const dbg = "ExtSensorMgrSettingsViewModel: " + info;
+                
                 if (obj !== undefined) {
-                    console.log(obj);
+                    console.log(dbg + " %o", obj);
+                } else {
+                    console.log(dbg);
                 }
             }
         };

@@ -39,9 +39,12 @@ $(function() {
         // functions / methods
         self._log = function (info, obj = undefined) {
             if (self._do_log) {
-                console.log("ExtSensorMgrViewModel: " + info);
+                const dbg = "ExtSensorMgrViewModel: " + info;
+                
                 if (obj !== undefined) {
-                    console.log(obj);
+                    console.log(dbg + " %o", obj);
+                } else {
+                    console.log(dbg);
                 }
             }
         };
