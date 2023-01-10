@@ -22,6 +22,7 @@ $(function() {
         self._do_log = false;
         self.read_frequency_ms = 5000;
         self.selectedSensorChart = null;
+        self.is_visible = false;
         self.BASE_CHART_OPTIONS = {
             scales: {
                 x: {
@@ -165,10 +166,10 @@ $(function() {
         };
 
         self.mapSensorOutputStd = function(sensor, config) {
-            var outputStd = { ...config };
+            const outputStd = { ...config };
             
             // add degree symbol ° temperature unit
-            var temperatureOutputList = Object.values(outputStd).filter(o => o.type == 'TEMPERATURE');
+            const temperatureOutputList = Object.values(outputStd).filter(o => o.type == 'TEMPERATURE');
             self._log(info = 'mapSensorOutputStd: (1) temperatureOutputList: ', obj = temperatureOutputList);
 
             for (const idx in temperatureOutputList){
@@ -223,8 +224,8 @@ $(function() {
             });
         };
         
-        self.intervalSensorReadCb = function (sensor, sensorId) {
-            self.getSensorReadHistoryList(sensorId).done(
+        self.intervalSensorReadCb = function (sensor) {
+            self.getSensorReadHistoryList(sensor.sensorId()).done(
                 (read_history_list) => {
                     if (!read_history_list) {
                         return;
@@ -233,26 +234,25 @@ $(function() {
                     self.prcSensorReading(sensor, read_history_list.at(-1));
 
                     // selected sensor graph
-                    if (self.selectedSensorId() != sensorId) {
+                    if (self.selectedSensorId() != sensor.sensorId()) {
                         return;
                     }
                     const cfg = self.ParseSensorToChartConfig(sensor, read_history_list);
                     self.chartCfgList(cfg);
                     self._log(info = 'initSensorReadingCb (getSensorReadHistoryList): graph config list: ', obj = cfg);
 
-                    self.build_graph(sensorId, cfg);
+                    self.build_graph(sensor.sensorId(), cfg);
                 });
         };
         
-        self.initSensorReadingCb = function (sensorId) {
-            var target = self.sensorList().filter((val) => {
-                return val.sensorId() == sensorId;
-            })[0];
-            self._log(info = 'initSensorReadingCb: (1) sensor id: ', obj = sensorId);
-            self._log(info = 'initSensorReadingCb: (2) sensor (filtered): ', obj = target);
-            target.output = ko.observable();
+        self.initSensorReadingCb = function (target) {
+            self._log(info = 'initSensorReadingCb: (1) sensor id: ', obj = target.sensorId());
+            if (!target.output)
+                target.output = ko.observable();
+            else
+                target.output();
 
-            var output_config_prom = self.getSensorOutputConfig(sensorId);
+            const output_config_prom = self.getSensorOutputConfig(target.sensorId());
             if (output_config_prom) {
                 output_config_prom.then((config) => {
                     self.mapSensorOutputStd(target, config);
@@ -334,20 +334,65 @@ $(function() {
                 }
             ));
             self.sensorList(sensorList);
-            self.sensorList().forEach((val) => {
-                self.initSensorReadingCb(val.sensorId());
+            self.sensorList().forEach((sensor) => {
+                self.initSensorReadingCb(sensor);
             });
 
             self._log(info = 'onBeforeBinding: (1) supported sensor types: ', obj = self.sensorTypeList());
             self._log(info = 'onBeforeBinding: (2) active sensors: ', obj = self.sensorList());
         };
 
-        self.onEventSettingsUpdated = function() {
-            self.read_frequency_ms = self.settingsVM.settings.plugins.ext_sensor_mgr.read_freq_s() * 1000;
-            // reinitialize without destroying original observables
+        self.onDataUpdaterPluginMessage = function(plugin, data) {
+            if (plugin != 'ext_sensor_mgr'){
+                return;
+            }
+            if(data.hasOwnProperty('upd_sensor_list')) {
+                const sensorList = data.upd_sensor_list;
+                self._log(info = 'onDataUpdaterPluginMessage: updated sensors from server: ', sensorList);
+                // update/push new sensors
+                sensorList.forEach((s) => {
+                    var viewSensor = self.sensorList().find(v => v.sensorId() == s.sensorId);
+                    if (viewSensor){
+                        self._log(info = 'onDataUpdaterPluginMessage: existing sensor matched for update: ', viewSensor);
+                        viewSensor.enabled(s.enabled);
+                        viewSensor.sensorType = self.sensorTypeFromId(s.sensorType);
+                        Object.keys(s.config).forEach((configKey) => {
+                            for (const [paramKey, paramVal] of Object.entries(s.config[configKey])){
+                                viewSensor.config[configKey][paramKey](paramVal);
+                            }
+                        });
 
-            self._log(info = 'onEventSettingsUpdated: (1) supported sensor types: ', obj = self.sensorTypeList());
-            self._log(info = 'onEventSettingsUpdated: (2) active sensors: ', obj = self.sensorList());
+                        // reinitialize
+                        self.initSensorReadingCb(viewSensor);
+                        
+                        // reset periodic reader callback
+                        if (viewSensor.read_cb){
+                            clearInterval(viewSensor.read_cb);
+                            viewSensor.read_cb = setInterval(self.intervalSensorReadCb, self.read_frequency_ms, viewSensor);
+                        }
+
+                    } else {
+                        viewSensor = ko.mapping.fromJS({ ...s });
+                        viewSensor.sensorType = self.sensorTypeFromId(s.sensorType);
+
+                        // reinitialize
+                        self.initSensorReadingCb(viewSensor);
+                        
+                        // reset periodic reader callback
+                        if (self.is_visible){
+                            viewSensor.read_cb = setInterval(self.intervalSensorReadCb, self.read_frequency_ms, viewSensor);
+                        }
+                        self.sensorList.push(viewSensor);
+                    }
+                });
+
+                // delete removed sensors
+                const existSensorIdList = sensorList.map((s) => s.sensorId);
+                const removedList = self.sensorList.remove((s) => !existSensorIdList.includes(s.sensorId()));
+
+                self._log(info = 'onDataUpdaterPluginMessage: removed sensors in view: ', removedList);
+                self._log(info = 'onDataUpdaterPluginMessage: updated sensors in view: ', self.sensorList());
+            }
         };
 
         self.onTabChange = function (next, current) {
@@ -356,8 +401,10 @@ $(function() {
                 for (const idx in self.sensorList()){
                     var sensor = self.sensorList()[idx];
                     if (!sensor.read_cb)
-                        sensor.read_cb = setInterval(() => self.intervalSensorReadCb(sensor, sensor.sensorId()), self.read_frequency_ms);
+                        sensor.read_cb = setInterval(self.intervalSensorReadCb, self.read_frequency_ms, sensor);
+                    self._log(info = 'onTabChange: reset sensor: ', sensor);
                 }
+                self.is_visible = true;
                 self._log(info = 'onTabChange: resetting intervals: ', self.sensorList());
             } else if (current == '#tab_plugin_ext_sensor_mgr') {
                 // stop the interval callbacks
@@ -366,6 +413,7 @@ $(function() {
                     clearInterval(sensor.read_cb);
                     sensor.read_cb = null;
                 }
+                self.is_visible = false;
                 self._log(info = 'onTabChange: stopping intervals: ', obj = self.sensorList());
             }
         };

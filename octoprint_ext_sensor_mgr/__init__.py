@@ -85,6 +85,8 @@ class ExtSensorMgrPlugin(octoprint.plugin.SettingsPlugin,
         self._log("on_settings_save: New stored sensors = ",
                   new_sensor_list)
         self.init_sensors(new_sensor_list)
+        # notify connected clients to update their dashboard
+        self._plugin_manager.send_plugin_message(self._identifier, dict(upd_sensor_list=new_sensor_list))
         
         return diff
 
