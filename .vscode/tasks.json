@@ -118,6 +118,12 @@
             "command": "cp -r node_modules/chart.js octoprint_ext_sensor_mgr/static/js/dep/chart.js && cp -r node_modules/chartjs-adapter-date-fns octoprint_ext_sensor_mgr/static/js/dep/chartjs-adapter-date-fns",
             "problemMatcher": []
         },
+        {
+            "label": "setup-py-dep",
+            "type": "shell",
+            "command": "mkdir -p octoprint_ext_sensor_mgr/dep && cd octoprint_ext_sensor_mgr/dep && git clone https://github.com/nvl1109/orangepi_zero_gpio.git && git clone https://github.com/jingl3s/DHT11-DHT22-Python-library-Orange-PI.git DHT_Python_library_Orange_PI",
+            "problemMatcher": []
+        },
     ],
     "inputs": [
         {
