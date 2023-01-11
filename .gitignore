@@ -1,4 +1,4 @@
-octoprint_ext_sensor_mgr/static/js/dep/*
+__pycache__
 *.pyc
 *.swp
 .idea

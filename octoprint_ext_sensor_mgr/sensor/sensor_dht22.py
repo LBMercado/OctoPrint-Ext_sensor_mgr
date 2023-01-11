@@ -29,7 +29,7 @@ class DHT22(Sensor):
             cls._config_params['max_readings'] = ConfigProperty(
                 data_type=max_readings_cfg.data_type, value_list=max_readings_cfg.value_list, default_value=60, label=max_readings_cfg.label)
             
-            cls._config_params['pin'] = ConfigProperty(data_type=type(int), value_list=[1,2,3], default_value=None, label='Pin')
+            cls._config_params['pin'] = ConfigProperty(data_type=type(int), value_list=[], default_value=None, label='Pin')
             cls._config_params['delay_s'] = ConfigProperty(data_type=type(int), value_list=[], default_value=2, label='Delay (in seconds)')
             DHT22._is_config_params_init = True
         return DHT22._config_params
