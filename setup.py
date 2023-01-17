@@ -33,7 +33,8 @@ plugin_url = "https://github.com/LBMercado/OctoPrint-Ext_sensor_mgr"
 plugin_license = "AGPLv3"
 
 # Any additional requirements besides OctoPrint should be listed here
-plugin_requires = ['pyA20', 'Adafruit_DHT']
+#plugin_requires = ["python-periphery", "pms7003"] #TODO: if include DHT22 support
+plugin_requires = ["pms7003"]
 
 ### --------------------------------------------------------------------------------------------------------------------
 ### More advanced options that you usually shouldn't have to touch follow after this point
