@@ -22,7 +22,7 @@
   "_resolved": "https://registry.npmjs.org/chart.js/-/chart.js-4.1.2.tgz",
   "_shasum": "04e3ba63dbc36a2af21caf46ae31940514cb644a",
   "_spec": "chart.js",
-  "_where": "/home/luis-dev/Documents/VSCode/Octoprint-Plugin-Dev/OctoPrint-Ext_sensor_mgr",
+  "_where": "/home/luis-dev/Documents/VSCode/Octoprint-Plugin-Dev/OctoPrint/OctoPrint-Ext_sensor_mgr",
   "bugs": {
     "url": "https://github.com/chartjs/Chart.js/issues"
   },

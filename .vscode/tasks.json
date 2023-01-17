@@ -6,17 +6,21 @@
         {
             "label": "Setup dev terminal",
             "type": "shell",
-            "command": "source ../OctoPrint/venv-dev1/bin/activate",
-            "group": {
-                "kind": "build",
-                "isDefault": true
+            "command": "source ../OctoPrint/dev-venv/bin/activate",
+            "presentation": {
+                "echo": false,
+                "reveal": "always",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": false
             },
             "runOptions": {"runOn": "folderOpen"},
         },
         {
             "label": "build-plugin",
             "type": "shell",
-            "command": "source ../OctoPrint/venv-dev1/bin/activate && octoprint dev plugin:install",
+            "command": "source ../OctoPrint/dev-venv/bin/activate && octoprint dev plugin:install",
             "group": "build",
             "dependsOn": [
                 "compile-less-sources",
@@ -26,7 +30,7 @@
         {
             "label": "build-plugin-quick",
             "type": "shell",
-            "command": "source ../OctoPrint/venv-dev1/bin/activate && octoprint dev plugin:install",
+            "command": "source ../OctoPrint/dev-venv/bin/activate && octoprint dev plugin:install",
             "group": "build",
             "dependsOn": [
                 "compile-less-sources",
@@ -35,7 +39,7 @@
         {
             "label": "build-dep",
             "type": "shell",
-            "command": "source ../OctoPrint/venv-dev1/bin/activate && octoprint dev plugin:install",
+            "command": "source ../OctoPrint/dev-venv/bin/activate && octoprint dev plugin:install",
             "group": "build",
             "dependsOrder": "sequence",
             "dependsOn": [
@@ -73,7 +77,7 @@
         {
             "label": "server-run",
             "type": "shell",
-            "command": "source ../OctoPrint/venv-dev1/bin/activate && octoprint serve",
+            "command": "source ../OctoPrint/dev-venv/bin/activate && octoprint serve",
             "isBackground": true,
 
             "problemMatcher": [

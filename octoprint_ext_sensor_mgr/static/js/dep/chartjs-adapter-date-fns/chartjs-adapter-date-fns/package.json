@@ -22,7 +22,7 @@
   "_resolved": "https://registry.npmjs.org/chartjs-adapter-date-fns/-/chartjs-adapter-date-fns-3.0.0.tgz",
   "_shasum": "c25f63c7f317c1f96f9a7c44bd45eeedb8a478e5",
   "_spec": "chartjs-adapter-date-fns",
-  "_where": "/home/luis-dev/Documents/VSCode/Octoprint-Plugin-Dev/OctoPrint-Ext_sensor_mgr",
+  "_where": "/home/luis-dev/Documents/VSCode/Octoprint-Plugin-Dev/OctoPrint/OctoPrint-Ext_sensor_mgr",
   "bugs": {
     "url": "https://github.com/chartjs/chartjs-adapter-date-fns/issues"
   },
