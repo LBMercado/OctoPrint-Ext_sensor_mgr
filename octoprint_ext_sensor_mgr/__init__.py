@@ -6,7 +6,7 @@ import flask
 from typing import List
 from octoprint_ext_sensor_mgr.logging import OctoprintLogging
 from octoprint_ext_sensor_mgr.sensor.sensor_base import Sensor
-from octoprint_ext_sensor_mgr.sensor.util import determine_sensor_config, transform_sensor_config
+from octoprint_ext_sensor_mgr.sensor.util.config import determine_sensor_config, transform_sensor_config
 from octoprint_ext_sensor_mgr.sensor_mngr import SensorManager
 from octoprint_ext_sensor_mgr.sensor.sensor_type import SensorType, SUPPORTED_SENSOR_LIST
 

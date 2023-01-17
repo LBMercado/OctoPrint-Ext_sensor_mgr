@@ -1,7 +1,7 @@
 from octoprint_ext_sensor_mgr.logging import ContextLevel, Logging
 from octoprint_ext_sensor_mgr.sensor.sensor_base import Sensor
 from octoprint_ext_sensor_mgr.sensor.sensor_type import SensorType
-from octoprint_ext_sensor_mgr.sensor.util import parse_sensor_config, sensor_cls
+from octoprint_ext_sensor_mgr.sensor.util.config import parse_sensor_config, sensor_cls
 
 class SensorManager:
     def __init__(self, is_mock_test = False, sensor_id_seed = 1, logger: Logging = None):
