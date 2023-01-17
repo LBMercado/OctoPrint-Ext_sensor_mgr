@@ -27,13 +27,12 @@ class Sensor:
         for list data type, provide possible values
     """
     @classmethod
-    def config_params(cls=None):
-        cls = cls if cls is not None else Sensor
+    def config_params(cls):
         if not cls._is_config_params_init:
             cls._config_params['max_readings'] = ConfigProperty(
-                data_type=type(int), value_list=[], default_value=1, label='Maximum number of readings')
+                data_type=int, value_list=[], default_value=1, label='Maximum number of readings')
             cls._config_params['name'] = ConfigProperty(
-                data_type=type(str), value_list=[], default_value='New Sensor', label='Sensor Name')
+                data_type=str, value_list=[], default_value='New Sensor', label='Sensor Name')
             cls._is_config_params_init = True
         return cls._config_params
 
@@ -44,9 +43,9 @@ class Sensor:
         value = config[param] if param in config else default
         
         try:
-            if type is type(int):
+            if type == int:
                 return int(value)
-            elif type is type(str):
+            elif type == str:
                 return str(value)
             else:
                 return value
