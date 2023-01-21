@@ -25,6 +25,13 @@ class Pms7003(Pms7003Actual):
     def _after_toggle(self):
         pass
     
+    def _configure(self, config: dict):
+        self.serial_dev = Pms7003.convert_value_type(config, 'serial_dev')
+        self.init_history_reading(Pms7003.convert_value_type(config, 'max_readings'))
+        
+        is_configured = True
+        return is_configured
+    
     def _read(self):
         pm1_0 = random.randint(PM1_0_RANGE[0], PM1_0_RANGE[1])
         pm2_5 = random.randint(PM2_5_RANGE[0], PM2_5_RANGE[1])
