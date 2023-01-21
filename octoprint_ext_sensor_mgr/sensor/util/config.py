@@ -26,15 +26,19 @@ def determine_sensor_config(sensorType: SensorType, is_test=False):
         return cls_mock.config_params()
 
 def sensor_cls(sensorType: SensorType, is_test=False):
+    cls: Sensor = None
+    cls_mock: Sensor = None
     if sensorType == SensorType.DHT22:
-        if is_test:
-            return Dht22Mock
-        try:
-            return Dht22
-        except NameError:
-            return None
-        
-    return None
+        cls = Dht22
+        cls_mock = Dht22Mock
+    elif sensorType == SensorType.PMS7003:
+        cls = Pms7003
+        cls_mock = Pms7003Mock
+    
+    if not is_test:
+        return cls
+    else:
+        return cls_mock
 
 def transform_sensor_config(config: Dict[str, ConfigProperty]):
     if config is None:
