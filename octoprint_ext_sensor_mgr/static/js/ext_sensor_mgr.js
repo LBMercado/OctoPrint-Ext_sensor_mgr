@@ -50,6 +50,12 @@ $(function() {
             }
         };
 
+        self._capitalizeStr = function (str){
+            var outputStr = str.toLowerCase();
+            outputStr = outputStr[0].toUpperCase() + outputStr.substring(1);
+            return outputStr;
+        }
+
         self.getSensorOutputConfig = function (sensorId) {
             if (!sensorId){
                 return;
@@ -98,22 +104,22 @@ $(function() {
         };
         
         self.ParseSensorToChartConfig = function(sensor, sensorData) {
+            var config, datasets, options;
             var configList = self.chartCfgList();
-            
-            if (sensor.sensorType.name() == 'DHT22'){
-                var chartData = sensorData.map(row => ({...row, timestamp: row.timestamp * 1000})); // js uses millis
-                var config, datasets, options;
-                
-                // temperature
-                datasets = [{
-                    label: sensor.config.name.value(),
-                    data: chartData,
-                }];
+            // from python timestamp to js timestamp (js uses millis)
+            var chartData = sensorData.map(row => ({...row, timestamp: row.timestamp * 1000}));
+            datasets = [{
+                label: sensor.config.name.value(),
+                data: chartData,
+            }];
+            self._log(info = 'ParseSensorToChartConfig: (1) sensor: ', obj = sensor);
+            self._log(info = 'ParseSensorToChartConfig: (2) sensor data: ', obj = sensorData);
+            Object.entries(sensor.outputStd).forEach(([key, outputCfg], idx) => {
                 options = {
                     ...self.BASE_CHART_OPTIONS,
                     parsing: {
                         xAxisKey: 'timestamp',
-                        yAxisKey: 'value.temp',
+                        yAxisKey: `value.${key}`,
                     },
                     scales: {
                         ...self.BASE_CHART_OPTIONS.scales,
@@ -121,46 +127,18 @@ $(function() {
                             ...self.BASE_CHART_OPTIONS.scales.y,
                             title: {
                                 display: true,
-                                text: 'Temperature (°C)',
+                                text: self._capitalizeStr(outputCfg.type) + ' (' + outputCfg.unit + ')', //TODO: special formating for naming?
                             },
-                            suggestedMax: 100,
+                            suggestedMax: 100, //TODO: variable maximums/minimum for given sensor
                         }
                     }
                 };
-                config = self._propChartConfig(configList[0], datasets, options);
+                config = self._propChartConfig(configList[idx], datasets, options);
                 if (configList.indexOf(config) == -1){
                     configList.push(config);
                 }
-
-                // humidity
-                datasets = [{
-                    label: sensor.config.name.value(),
-                    data: chartData,
-                }];
-                options = {
-                    ...self.BASE_CHART_OPTIONS,
-                    parsing: {
-                        xAxisKey: 'timestamp',
-                        yAxisKey: 'value.hum',
-                    },
-                    scales: {
-                        ...self.BASE_CHART_OPTIONS.scales,
-                        y: {
-                            ...self.BASE_CHART_OPTIONS.scales.y,
-                            title: {
-                                display: true,
-                                text: 'Humidity (%)',
-                            },
-                            suggestedMax: 100,
-                        }
-                    }
-                };
-
-                config = self._propChartConfig(configList[1], datasets, options);
-                if (configList.indexOf(config) == -1){
-                    configList.push(config);
-                }
-            }
+            });
+            self._log(info = 'ParseSensorToChartConfig: (3) config list: ', obj = configList);
 
             return configList;
         };
@@ -168,16 +146,16 @@ $(function() {
         self.mapSensorOutputStd = function(sensor, config) {
             const outputStd = { ...config };
             
-            // add degree symbol ° temperature unit
-            const temperatureOutputList = Object.values(outputStd).filter(o => o.type == 'TEMPERATURE');
-            self._log(info = 'mapSensorOutputStd: (1) temperatureOutputList: ', obj = temperatureOutputList);
-
-            for (const idx in temperatureOutputList){
-                temperatureOutputList[idx].unit = '°' + temperatureOutputList[idx].unit;
+            // add degree symbol (°) to temperature unit
+            Object.keys(outputStd).filter(o => o.type == 'temp');
+            for (const [key, val] of Object.entries(outputStd)){
+                if (key == 'temp'){
+                    val.unit = '°' + val.unit;
+                }
             }
 
             sensor.outputStd = outputStd;
-            self._log(info = 'mapSensorOutputStd: (2) sensor output std: ', obj = outputStd);
+            self._log(info = 'mapSensorOutputStd: (1) out sensor: ', obj = sensor);
         };
 
         self.genSensorOutputObs = function(sensor) {
@@ -185,11 +163,9 @@ $(function() {
             const outputStd = sensor.outputStd;
 
             Object.keys(outputStd).forEach((outputKey) => {
-                var readingLabel = outputStd[outputKey].type.toLowerCase();
-                readingLabel = readingLabel[0].toUpperCase() + readingLabel.substring(1);
                 var reading = {
                     key: outputKey,
-                    label: readingLabel,
+                    label: self._capitalizeStr(outputStd[outputKey].type),
                     unit: ko.observable(outputStd[outputKey].unit),
                     val: ko.observable()
                 };
@@ -197,7 +173,7 @@ $(function() {
             });
 
             sensor.output(output_list);
-            self._log(info = 'genSensorOutputObs: sensor output: ', obj = sensor.output());
+            self._log(info = 'genSensorOutputObs: out sensor: ', obj = sensor);
         };
 
         self.prcSensorReading = function (sensor, reading) {
@@ -246,7 +222,7 @@ $(function() {
         };
         
         self.initSensorReadingCb = function (target) {
-            self._log(info = 'initSensorReadingCb: (1) sensor id: ', obj = target.sensorId());
+            self._log(info = 'initSensorReadingCb: (1) init sensor: ', obj = target);
             if (!target.output)
                 target.output = ko.observable();
             else
@@ -257,7 +233,7 @@ $(function() {
                 output_config_prom.then((config) => {
                     self.mapSensorOutputStd(target, config);
                     self.genSensorOutputObs(target);
-                    self._log(info = 'initSensorReadingCb: (3) sensor: ', obj = target);
+                    self._log(info = 'initSensorReadingCb: (2) finish init sensor: ', obj = target);
                 });
             }
         };
