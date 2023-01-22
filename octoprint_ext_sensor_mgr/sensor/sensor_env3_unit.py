@@ -90,8 +90,8 @@ class Env3Unit(Sensor):
         out['sht30_temp'] = sht30_out['temp']
         out['hum'] = sht30_out['hum']
         qmp6988_out = self.qmp6988.read()
-        out['qmp6988_temp'] = qmp6988_out['temperature']
-        out['psr'] = qmp6988_out['pressure']
+        out['qmp6988_temp'] = qmp6988_out['temp']
+        out['psr'] = qmp6988_out['psr']
         
         return out
     
