@@ -1,0 +1,4 @@
+[submodule "octoprint_ext_sensor_mgr/dep/qmp6988_smbus"]
+	path = octoprint_ext_sensor_mgr/dep/qmp6988_smbus
+	url = https://github.com/LBMercado/qmp6988_smbus
+	branch = main
