@@ -69,8 +69,8 @@ class Qmp6988(Sensor):
         self.filter = Qmp6988.convert_value_type(config, 'filter')
         self.pow_mode = Qmp6988.convert_value_type(config, 'pow_mode')
         
-        qmp_config = dict(temperature=self.temp_sampling,
-                      pressure=self.psr_sampling, filter=self.filter, mode=self.pow_mode)
+        qmp_config = dict(temperature=self.temp_sampling.value,
+                      pressure=self.psr_sampling.value, filter=self.filter.value, mode=self.pow_mode.value)
         
         self.init_history_reading(Qmp6988.convert_value_type(config, 'max_readings'))
         
