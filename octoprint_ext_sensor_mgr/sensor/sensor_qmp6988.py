@@ -4,6 +4,7 @@ from octoprint_ext_sensor_mgr.sensor.sensor_out_type import SensorOutputType
 from octoprint_ext_sensor_mgr.sensor.sensor_type import SensorType
 from octoprint_ext_sensor_mgr.dep.qmp6988_smbus.src.piqmp6988 import piqmp6988 as PiQMP6988
 from octoprint_ext_sensor_mgr.dep.qmp6988_smbus.src.piqmp6988.smbus_intf import Smbus
+import piqmp6988 as PiQMP6988
 import copy
 
 class Qmp6988(Sensor):

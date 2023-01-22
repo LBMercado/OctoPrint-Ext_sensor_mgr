@@ -34,7 +34,7 @@ plugin_license = "AGPLv3"
 
 # Any additional requirements besides OctoPrint should be listed here
 #plugin_requires = ["python-periphery", "pms7003"] #TODO: if include DHT22 support
-plugin_requires = ["pms7003", "gpiod"]
+plugin_requires = ["pms7003", "gpiod", "smbus-cffi", "piqmp6988-abst @ https://github.com/LBMercado/qmp6988_smbus/archive/main.zip#egg=piqmp6988-abst"]
 
 ### --------------------------------------------------------------------------------------------------------------------
 ### More advanced options that you usually shouldn't have to touch follow after this point
