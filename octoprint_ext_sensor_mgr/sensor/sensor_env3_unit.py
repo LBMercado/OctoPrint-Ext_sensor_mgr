@@ -11,7 +11,6 @@ class Env3Unit(Sensor):
     
     def __init__(self):
         super().__init__()
-        self.serial_dev = None
         self.type = SensorType.ENV3_UNIT
         self.output_type =  SensorOutputType.TEMPERATURE | SensorOutputType.HUMIDITY | SensorOutputType.PRESSURE
         self.output_type_unit = None
@@ -52,8 +51,8 @@ class Env3Unit(Sensor):
         
         config = dict()
         if SensorOutputType.TEMPERATURE in self.output_type:
-            config['sht30_temp'] = dict(type=SensorOutputType.TEMPERATURE.name, unit='C')
-            config['qmp6988_temp'] = dict(type=SensorOutputType.TEMPERATURE.name, unit='C')
+            sub_output_list = [SensorType.SHT30.name, SensorType.QMP6988.name]
+            config['temp'] = dict(type=SensorOutputType.TEMPERATURE.name, unit='C', sub_output_list=sub_output_list)
         if SensorOutputType.HUMIDITY in self.output_type:
             config['hum'] = dict(type=SensorOutputType.HUMIDITY.name, unit='%')
         if SensorOutputType.PRESSURE in self.output_type:
@@ -82,7 +81,8 @@ class Env3Unit(Sensor):
     def _postprc_read(self, reading):
         if reading is None:
             return None
-        return dict(temp=dict(sht30=reading['sht30_temp'], qmp6988=reading['qmp6988_temp']), hum=reading['hum'], psr=reading['psr'])
+        temp_output = dict(sht30=reading['sht30_temp'], qmp6988=reading['qmp6988_temp'])
+        return dict(temp=temp_output, hum=reading['hum'], psr=reading['psr'])
     
     def _read(self):
         out = dict()

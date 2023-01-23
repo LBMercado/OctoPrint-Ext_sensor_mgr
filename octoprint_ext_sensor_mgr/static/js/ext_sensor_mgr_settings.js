@@ -93,7 +93,12 @@ $(function () {
         };
 
         self.init_config_param = function (config_param, value = null) {
-            config_param.value = value;
+            // check if default value is enum
+            if (typeof config_param.default_value === 'object'){
+                config_param.value = value ?? config_param.default_value.key;
+            } else {
+                config_param.value = value ?? config_param.default_value;
+            }
             config_param.type = config_param.value_list.length > 0 ? self.CONFIG_DATA_TYPE.Options : self.CONFIG_DATA_TYPE.Text;
 
             for (const param in config_param){

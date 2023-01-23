@@ -36,16 +36,39 @@ $(function() {
                 },
             }
         };
+        self.LOG_TYPE = {
+            INFO: 1,
+            ERROR: 2,
+            WARNING: 3
+        };
 
         // functions / methods
-        self._log = function (info, obj = undefined) {
+        self._log = function (info, obj = undefined, logType = self.LOG_TYPE.INFO) {
             if (self._do_log) {
                 const dbg = "ExtSensorMgrViewModel: " + info;
                 
                 if (obj !== undefined) {
-                    console.log(dbg + " %o", obj);
+                    switch(logType){
+                        case self.LOG_TYPE.ERROR:
+                            console.error(dbg + " %o", obj);
+                            break;
+                        case self.LOG_TYPE.WARNING:
+                            console.warn(dbg + " %o", obj);
+                            break;
+                        default:
+                            console.log(dbg + " %o", obj);
+                    }
                 } else {
-                    console.log(dbg);
+                    switch(logType){
+                        case self.LOG_TYPE.ERROR:
+                            console.error(dbg);
+                            break;
+                        case self.LOG_TYPE.WARNING:
+                            console.warn(dbg);
+                            break;
+                        default:
+                            console.log(dbg);
+                    }
                 }
             }
         };
@@ -54,7 +77,7 @@ $(function() {
             var outputStr = str.toLowerCase();
             outputStr = outputStr[0].toUpperCase() + outputStr.substring(1);
             return outputStr;
-        }
+        };
 
         self.getSensorOutputConfig = function (sensorId) {
             if (!sensorId){
@@ -104,18 +127,36 @@ $(function() {
         };
         
         self.ParseSensorToChartConfig = function(sensor, sensorData) {
-            var config, datasets, options;
+            var config, initDatasets, options;
             var configList = self.chartCfgList();
             // from python timestamp to js timestamp (js uses millis)
             var chartData = sensorData.map(row => ({...row, timestamp: row.timestamp * 1000}));
-            datasets = [{
+            initDatasets = [{
                 label: sensor.config.name.value(),
                 data: chartData,
             }];
             self._log(info = 'ParseSensorToChartConfig: (1) sensor: ', obj = sensor);
             self._log(info = 'ParseSensorToChartConfig: (2) sensor data: ', obj = sensorData);
             Object.entries(sensor.outputStd).forEach(([key, outputCfg], idx) => {
+                var datasetList = [];
+                if (outputCfg.hasOwnProperty('sub_output_list')) {
+                    for (const subOutput of Object.values(outputCfg.sub_output_list)){
+                        subOutDs = {
+                            label: sensor.config.name.value().concat(' (', subOutput, ')'),
+                            data: chartData,
+                            parsing: {
+                                xAxisKey: 'timestamp',
+                                yAxisKey: `value.${key}.${subOutput.toLowerCase()}`,
+                            }
+                        };                     
+                        datasetList.push(subOutDs);
+                    }
+                } else {
+                    datasetList = [...initDatasets];
+                }
+                
                 options = {
+                    ...options,
                     ...self.BASE_CHART_OPTIONS,
                     parsing: {
                         xAxisKey: 'timestamp',
@@ -133,7 +174,7 @@ $(function() {
                         }
                     }
                 };
-                config = self._propChartConfig(configList[idx], datasets, options);
+                config = self._propChartConfig(configList[idx], datasetList, options);
                 if (configList.indexOf(config) == -1){
                     configList.push(config);
                 }
@@ -155,38 +196,80 @@ $(function() {
             }
 
             sensor.outputStd = outputStd;
-            self._log(info = 'mapSensorOutputStd: (1) out sensor: ', obj = sensor);
+            self._log(info = 'mapSensorOutputStd: out sensor: ', obj = sensor);
         };
 
         self.genSensorOutputObs = function(sensor) {
             var output_list = [];
             const outputStd = sensor.outputStd;
 
-            Object.keys(outputStd).forEach((outputKey) => {
-                var reading = {
-                    key: outputKey,
-                    label: self._capitalizeStr(outputStd[outputKey].type),
-                    unit: ko.observable(outputStd[outputKey].unit),
-                    val: ko.observable()
+            Object.entries(outputStd).forEach((stdEntry) => {
+                const [k, std] = stdEntry;
+                var suboutputList = [];
+
+                if (std.hasOwnProperty('sub_output_list')){
+                    suboutputList = std.sub_output_list.map((suboutput) => {
+                        return {
+                            name: suboutput,
+                            val: null,
+                        };
+                    });
+                } else {
+                    suboutputList.push({
+                        name: null,
+                        val: null
+                    });
+                }
+
+                var output = {
+                    key: k,
+                    label: self._capitalizeStr(std.type),
+                    unit: ko.observable(std.unit),
+                    suboutput: ko.observableArray(suboutputList)
                 };
-                output_list.push(reading);
+                output_list.push(output);
             });
 
             sensor.output(output_list);
             self._log(info = 'genSensorOutputObs: out sensor: ', obj = sensor);
         };
 
+        self.prcSubOutput = function(outputObsArr, subOutput) {
+            if (!ko.isObservableArray(outputObsArr)){
+                self._log(info = 'prcSubOutput: output is not observable arr: ', obj = outputObs, logType = self.LOG_TYPE.WARNING);
+                return;
+            }
+            // multiple output
+            if (typeof subOutput === 'object'){
+                for (const [outputName, outputVal] of Object.entries(subOutput)){
+                    const subOutputEntry = outputObsArr.remove(o => o.name.toLowerCase() == outputName.toLowerCase());
+                    if (subOutputEntry != null){
+                        subOutputEntry[0].val = outputVal;
+                        outputObsArr.push(subOutputEntry[0]);
+                    }
+                }
+            } else {
+                const subOutputEntry = outputObsArr.remove(o => o.name == null);
+                if (subOutputEntry != null){
+                    subOutputEntry[0].val = subOutput;
+                    outputObsArr.push(subOutputEntry[0]);
+                }
+            }
+            self._log(info = 'prcSubOutput: processed output: ', obj = outputObsArr());
+        };
+        
         self.prcSensorReading = function (sensor, reading) {
             if (!reading){
-                self._log(info = 'prcSensorReading: no reading returned for sensor', obj = sensor);
+                self._log(info = 'prcSensorReading: no reading returned for sensor', obj = sensor, logType = self.LOG_TYPE.WARNING);
                 return;
             }
             
             for (const readingKey in reading.value){
-                var displ_reading = sensor.output().find(o => o.key == readingKey);
-                self._log(info = 'prcSensorReading: (1) displ_reading: ', obj = displ_reading);
-                if (displ_reading){
-                    displ_reading.val(reading.value[readingKey]);
+                const displOutput = sensor.output().find(o => o.key == readingKey);
+                self._log(info = 'prcSensorReading: (1) displ_reading: ', obj = displOutput);
+                if (displOutput != null){
+                    const readVal = reading.value[readingKey];
+                    self.prcSubOutput(displOutput.suboutput, readVal);
                 }
             }
             self._log(info = 'prcSensorReading: (2) reading: ', obj = reading);
@@ -194,12 +277,15 @@ $(function() {
         };
 
         // bindings / callbacks
-        self.fmtSensorReadingCb = function(unit, value){
+        self.fmtSensorReadingCb = function(unit, value, name = undefined){
             return ko.pureComputed(function() {
-                return value() + ' ' + unit();
+                displDesc = name != null ? name.toUpperCase() + ': ' : '';
+                displVal = ko.isObservable(value) ? value() : value;
+                displ = ''.concat(displDesc, displVal, ' ', unit());
+                return displ;
             });
         };
-        
+
         self.intervalSensorReadCb = function (sensor) {
             self.getSensorReadHistoryList(sensor.sensorId()).done(
                 (read_history_list) => {

@@ -1,11 +1,6 @@
 from octoprint_ext_sensor_mgr.sensor.config_property import ConfigProperty
-from octoprint_ext_sensor_mgr.sensor.sensor_base import Sensor
 from octoprint_ext_sensor_mgr.sensor.sensor_pms7003 import Pms7003 as Pms7003Actual
-from octoprint_ext_sensor_mgr.sensor.sensor_out_type import SensorOutputType
-from octoprint_ext_sensor_mgr.sensor.sensor_type import SensorType
 from octoprint_ext_sensor_mgr.sensor.util.dev import serial_dev_list
-from pms7003 import Pms7003Sensor
-import copy
 
 import random
 

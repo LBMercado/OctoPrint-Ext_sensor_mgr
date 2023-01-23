@@ -11,7 +11,6 @@ class Qmp6988(Sensor):
     
     def __init__(self):
         super().__init__()
-        self.serial_dev = None
         self.type = SensorType.QMP6988
         self.output_type =  SensorOutputType.TEMPERATURE | SensorOutputType.PRESSURE
         self.output_type_unit = None

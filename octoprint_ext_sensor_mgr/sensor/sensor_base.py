@@ -1,4 +1,5 @@
 from collections import deque
+from enum import Enum
 from typing import Union
 from datetime import datetime
 from octoprint_ext_sensor_mgr.sensor.config_property import ConfigProperty
@@ -47,6 +48,8 @@ class Sensor:
                 return int(value)
             elif type == str:
                 return str(value)
+            elif issubclass(type, Enum):
+                return type(value)
             else:
                 return value
         except TypeError:

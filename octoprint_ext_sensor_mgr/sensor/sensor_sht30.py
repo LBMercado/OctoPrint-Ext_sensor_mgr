@@ -20,7 +20,6 @@ class Sht30(Sensor):
     
     def __init__(self):
         super().__init__()
-        self.serial_dev = None
         self.type = SensorType.SHT30
         self.output_type =  SensorOutputType.TEMPERATURE | SensorOutputType.HUMIDITY
         self.output_type_unit = None
