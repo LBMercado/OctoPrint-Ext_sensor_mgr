@@ -7,7 +7,7 @@ A sensor management interface for monitoring their outputs directly in your Octo
 Install via the bundled [Plugin Manager](https://docs.octoprint.org/en/master/bundledplugins/pluginmanager.html)
 or manually using this URL:
 
-  https://github.com/LBMercado/OctoPrint-Ext_sensor_mgr/archive/master.zip
+    https://github.com/LBMercado/OctoPrint-Ext_sensor_mgr/archive/master.zip
 
 **TODO:** additional setup requirements
 
