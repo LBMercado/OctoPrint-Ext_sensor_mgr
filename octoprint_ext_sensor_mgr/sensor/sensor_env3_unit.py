@@ -31,18 +31,24 @@ class Env3Unit(Sensor):
             qmp6988_config = Qmp6988.config_params()
             # prefix config to prevent conflicts
             for k, v in sht30_config.items():
-                cls._config_params['sht30_' + k] = v
+                sep_key = 'sht30_' + k
+                cls._config_params[sep_key] = v
+                if 'SHT30 Configuration' not in cls._config_params[sep_key].group_seq:
+                    cls._config_params[sep_key].group_seq = (
+                        'SHT30 Configuration', *cls._config_params[sep_key].group_seq)
             for k, v in qmp6988_config.items():
-                cls._config_params['qmp6988_' + k] = v
-            
-            max_readings_cfg = cls._config_params['max_readings']
-            prop = ConfigProperty(
-                data_type=max_readings_cfg.data_type, value_list=max_readings_cfg.value_list, default_value=60, label=max_readings_cfg.label)
-            cls._config_params['max_readings'] = prop
-            cls._config_params['sht30_max_readings'] = prop
-            cls._config_params['qmp6988_max_readings'] = prop
+                sep_key = 'qmp6988_' + k
+                cls._config_params[sep_key] = v
+                if 'QMP6988 Configuration' not in cls._config_params[sep_key].group_seq:
+                    cls._config_params[sep_key].group_seq = (
+                        'QMP6988 Configuration', *cls._config_params[sep_key].group_seq)
+            dflt_max_read_value = 60
+            cls._config_params['max_readings'].default_value = dflt_max_read_value
+            cls._config_params['sht30_max_readings'].default_value = dflt_max_read_value
+            cls._config_params['qmp6988_max_readings'].default_value = dflt_max_read_value
             
             cls._is_config_params_init = True
+            cls._is_config_params_pend_init = False
         return cls._config_params
     
     def output_config(self) -> dict():

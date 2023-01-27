@@ -20,7 +20,7 @@
                 </select>
             </td>
             <td>
-                <input type="text" data-bind="value: config.name.value"/>
+                <input type="text" data-bind="value: config.name.value" />
             </td>
             <td class="settings_ext_sensor_mgr_actions">
                 <a title="{{ _('Toggle')|edq }}"
@@ -34,7 +34,8 @@
 
 <div>
     <button class="btn btn-block" data-bind="click: function() { $root.addSensor() }"> {{ _('Add') }}</button>
-    <button class="btn btn-block" data-bind="enable: $root.enableSensorCb(selectedSensor), click: function() { $root.mdfSensor() }"> {{
+    <button class="btn btn-block"
+        data-bind="enable: $root.enableSensorCb(selectedSensor), click: function() { $root.mdfSensor() }"> {{
         _('Configure')
         }}</button>
 </div>
@@ -49,8 +50,9 @@
             <div class="controls">
                 <div class="input-append">
                     <label class="control-label">{{ _('Read frequency') }}
-                        <input type="number" min="1" step="0.01" class="input-mini text-right" data-bind="value: settingsVM.settings.plugins.ext_sensor_mgr.read_freq_s">
-                        <span class="add-on">sec</span>                    
+                        <input type="number" min="1" step="0.01" class="input-mini text-right"
+                            data-bind="value: settingsVM.settings.plugins.ext_sensor_mgr.read_freq_s">
+                        <span class="add-on">sec</span>
                     </label>
                 </div>
             </div>
@@ -81,21 +83,36 @@
         <a href="#" class="close" data-dismiss="modal" aria-hidden="true">&times;</a>
         <h3>{{ _('Configuration') }}</h3>
     </div>
-    
-    <div class="modal-body" data-bind="foreach: $root.selectedSupportedConfigList">
-        <div class="control-group" data-bind="if: type == $root.CONFIG_DATA_TYPE.Options">
-            <label class="control-label" data-bind="text: label ?? param"></label>
-            <div class="controls" data-bind="with: $root.matchingParamConfigCb($data, $parent.config)">
-                <select class="input-block-level"
-                    data-bind="value: value, options: value_list, optionsText: 'val', optionsValue: 'key', valueAllowUnset: true"></select>
+
+    <div class="modal-body" data-bind="foreach: $root.selectedSuppConfigGroupList">
+        <form class="form-horizontal" onsubmit="return false;">
+            <div data-bind="if: level == 1">
+                <h4 data-bind="text: name"></h4>
+                <div data-bind="foreach: $root.selectedSupportedConfigList">
+                    <!-- ko if: group[0].name == $parent.name && group[0].level == $parent.level -->
+                    <!-- ko if: type == $root.CONFIG_DATA_TYPE.Options -->
+                    <div class="control-group"
+                        data-bind="using: $root.matchingParamConfigCb($data, $parents[1].config)">
+                        <label class="control-label" data-bind="text: label ?? param"></label>
+                        <div class="controls">
+                            <select
+                                data-bind="value: value, options: value_list, optionsText: 'val', optionsValue: 'key', valueAllowUnset: true"></select>
+                        </div>
+                    </div>
+                    <!-- /ko -->
+                    <!-- ko if: type == $root.CONFIG_DATA_TYPE.Text -->
+                    <div class="control-group"
+                        data-bind="using: $root.matchingParamConfigCb($data, $parents[1].config)">
+                        <label class="control-label" data-bind="text: label ?? param"></label>
+                        <div class="controls">
+                            <input type="text" data-bind="value: value" />
+                        </div>
+                    </div>
+                    <!-- /ko -->
+                    <!-- /ko -->
+                </div>
             </div>
-        </div>
-        <div class="control-group" data-bind="if: type == $root.CONFIG_DATA_TYPE.Text">
-            <label class="control-label" data-bind="text: label ?? param"></label>
-            <div class="controls" data-bind="with: $root.matchingParamConfigCb($data, $parent.config)">
-                <input type="text" class="input-block-level" data-bind="value: value" />
-            </div>
-        </div>
+        </form>
     </div>
     <div class="modal-footer">
         <div class="row-fluid">

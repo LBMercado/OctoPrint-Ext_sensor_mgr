@@ -37,16 +37,21 @@ class DHT22(Sensor):
     @classmethod
     def config_params(cls):
         if not cls._is_config_params_init:
-            cls._config_params = copy.deepcopy(super(DHT22, cls).config_params())
-            max_readings_cfg = cls._config_params['max_readings']
-            cls._config_params['max_readings'] = ConfigProperty(
-                data_type=max_readings_cfg.data_type, value_list=max_readings_cfg.value_list, default_value=60, label=max_readings_cfg.label)
             
-            cls._config_params['gpio_device'] = ConfigProperty(data_type=str, value_list=gpio_dev_list(), default_value=None, label='GPIO Device')
-            cls._config_params['pin'] = ConfigProperty(data_type=int, value_list=[], default_value=None, label='Pin (WiringPi pin)')
-            cls._config_params['delay_s'] = ConfigProperty(data_type=int, value_list=[], default_value=2, label='Delay (in seconds)')
+            cls._config_params = copy.deepcopy(super(DHT22, cls).config_params())
+            cls._config_params['max_readings'].default_value = 60
+            
+            group_seq = ('Sensor Configuration',)
+            
+            cls._config_params['gpio_device'] = ConfigProperty(data_type=str, value_list=gpio_dev_list(
+            ), default_value=None, label='GPIO Device', group_seq=group_seq)
+            cls._config_params['pin'] = ConfigProperty(data_type=int, value_list=[
+            ], default_value=None, label='Pin (WiringPi pin)', group_seq=group_seq)
+            cls._config_params['delay_s'] = ConfigProperty(data_type=int, value_list=[
+            ], default_value=2, label='Delay (in seconds)', group_seq=group_seq)
             cls._config_params['ready_comm_s'] = ConfigProperty(data_type=int, value_list=[
-            ], default_value=cls.READY_COMM_MS, label='Delay time before ready for communication (in milliseconds)')
+            ], default_value=cls.READY_COMM_MS, label='Delay time before ready for communication (in milliseconds)', group_seq=group_seq)
+            
             cls._is_config_params_init = True
         return cls._config_params
     

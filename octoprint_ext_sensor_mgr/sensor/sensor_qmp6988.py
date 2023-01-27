@@ -26,25 +26,24 @@ class Qmp6988(Sensor):
     def config_params(cls):
         if not cls._is_config_params_init:
             cls._config_params = copy.deepcopy(super(Qmp6988, cls).config_params())
+            cls._config_params['max_readings'].default_value = 60
             
-            max_readings_cfg = cls._config_params['max_readings']
-            cls._config_params['max_readings'] = ConfigProperty(
-                data_type=max_readings_cfg.data_type, value_list=max_readings_cfg.value_list, default_value=60, label=max_readings_cfg.label)
+            group_seq = ('Sensor Configuration',)
             
             cls._config_params['bus_num'] = ConfigProperty(
-                data_type=int, value_list=[], default_value=1, label='I2C bus number')
+                data_type=int, value_list=[], default_value=1, label='I2C bus number', group_seq=group_seq)
             cls._config_params['i2c_addr'] = ConfigProperty(data_type=PiQMP6988.Address, value_list=[a for a in PiQMP6988.Address],
-                                                            default_value=PiQMP6988.Address.LOW, label='I2C address (in decimal)')
+                                                            default_value=PiQMP6988.Address.LOW, label='I2C address (in decimal)', group_seq=group_seq)
             cls._config_params['temp_sampling'] = ConfigProperty(data_type=PiQMP6988.Oversampling, value_list=[o for o in PiQMP6988.Oversampling],
-                                                                 default_value=PiQMP6988.Oversampling.X4, label='Temperature sampling')
+                                                                 default_value=PiQMP6988.Oversampling.X4, label='Temperature sampling', group_seq=group_seq)
             cls._config_params['psr_sampling'] = ConfigProperty(data_type=PiQMP6988.Oversampling, value_list=[o for o in PiQMP6988.Oversampling],
-                                                                default_value=PiQMP6988.Oversampling.X32, label='Pressure sampling')
+                                                                default_value=PiQMP6988.Oversampling.X32, label='Pressure sampling', group_seq=group_seq)
             cls._config_params['filter'] = ConfigProperty(data_type=PiQMP6988.Filter, value_list=[f for f in PiQMP6988.Filter],
-                                                          default_value=PiQMP6988.Filter.COEFFECT_32, label='Filter')
+                                                          default_value=PiQMP6988.Filter.COEFFECT_32, label='Filter', group_seq=group_seq)
             cls._config_params['pow_mode'] = ConfigProperty(data_type=PiQMP6988.Powermode, value_list=[f for f in PiQMP6988.Powermode],
-                                                            default_value=PiQMP6988.Powermode.NORMAL, label='Power Mode')
-            
+                                                            default_value=PiQMP6988.Powermode.NORMAL, label='Power Mode', group_seq=group_seq)
             cls._is_config_params_init = True
+            
         return cls._config_params
     
     def output_config(self) -> dict():

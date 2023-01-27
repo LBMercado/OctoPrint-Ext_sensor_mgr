@@ -51,7 +51,7 @@ def transform_sensor_config(config: Dict[str, ConfigProperty]):
     ret_config = copy.deepcopy(config)
     
     for k in ret_config.keys():
-        ret_config[k] = ret_config[k]._asdict()
+        ret_config[k] = ret_config[k].to_dict()
         # handle types to be serializable
         if issubclass(ret_config[k]['data_type'], Enum):
             ret_config[k]['value_list'] = [

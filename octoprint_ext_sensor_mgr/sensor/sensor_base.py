@@ -6,7 +6,7 @@ from octoprint_ext_sensor_mgr.sensor.config_property import ConfigProperty
 from octoprint_ext_sensor_mgr.sensor.sensor_out_type import SensorOutputType
 
 class Sensor:
-    _config_params = dict()
+    _config_params: dict[str, ConfigProperty] = dict()
     _is_config_params_init = False
     output_type: SensorOutputType
 
@@ -30,10 +30,12 @@ class Sensor:
     @classmethod
     def config_params(cls):
         if not cls._is_config_params_init:
+            
+            group_seq = ('Common',)
             cls._config_params['max_readings'] = ConfigProperty(
-                data_type=int, value_list=[], default_value=1, label='Maximum number of readings')
+                data_type=int, value_list=[], default_value=1, label='Maximum number of readings', group_seq=group_seq)
             cls._config_params['name'] = ConfigProperty(
-                data_type=str, value_list=[], default_value='New Sensor', label='Sensor Name')
+                data_type=str, value_list=[], default_value='New Sensor', label='Sensor Name', group_seq=group_seq)
             cls._is_config_params_init = True
         return cls._config_params
 

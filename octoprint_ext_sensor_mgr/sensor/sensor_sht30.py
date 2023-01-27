@@ -35,13 +35,14 @@ class Sht30(Sensor):
     def config_params(cls):
         if not cls._is_config_params_init:
             cls._config_params = copy.deepcopy(super(Sht30, cls).config_params())
+            cls._config_params['max_readings'].default_value = 60
             
-            max_readings_cfg = cls._config_params['max_readings']
-            cls._config_params['max_readings'] = ConfigProperty(
-                data_type=max_readings_cfg.data_type, value_list=max_readings_cfg.value_list, default_value=60, label=max_readings_cfg.label)
+            group_seq = ('Sensor Configuration',)
             
-            cls._config_params['bus'] = ConfigProperty(data_type=int, value_list=[], default_value=1, label='I2C Bus No.')
-            cls._config_params['i2c_addr'] = ConfigProperty(data_type=int, value_list=[], default_value=Sht30.DFLT_ADDRESS, label='I2C Address (in decimal)')
+            cls._config_params['bus'] = ConfigProperty(data_type=int, value_list=[
+            ], default_value=1, label='I2C Bus No.', group_seq=group_seq)
+            cls._config_params['i2c_addr'] = ConfigProperty(data_type=int, value_list=[
+            ], default_value=Sht30.DFLT_ADDRESS, label='I2C Address (in decimal)', group_seq=group_seq)
             
             cls._is_config_params_init = True
         return cls._config_params
