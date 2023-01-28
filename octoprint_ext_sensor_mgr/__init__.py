@@ -94,8 +94,8 @@ class ExtSensorMgrPlugin(octoprint.plugin.SettingsPlugin,
 
     # ~~ AssetPlugin mixin
     def get_assets(self):
-        js_dep = ["js/dep/chart.js/dist/chart.umd.js", "js/dep/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.min.js",
-                  "js/dep/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"]
+        js_dep = ["js/dep/chart.umd.js", "js/dep/chartjs-adapter-date-fns.min.js",
+                  "js/dep/chartjs-adapter-date-fns.bundle.min.js"]
 
         return {
             "js": ["js/ext_sensor_mgr.js", "js/ext_sensor_mgr_settings.js", *js_dep],
