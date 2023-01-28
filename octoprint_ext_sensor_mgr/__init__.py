@@ -12,40 +12,46 @@ from octoprint_ext_sensor_mgr.sensor.sensor_type import SensorType, SUPPORTED_SE
 
 
 class ExtSensorMgrPlugin(octoprint.plugin.SettingsPlugin,
-                           octoprint.plugin.AssetPlugin,
-                           octoprint.plugin.TemplatePlugin,
-                           octoprint.plugin.StartupPlugin,
-                           octoprint.plugin.SimpleApiPlugin
-                           ):
+                         octoprint.plugin.AssetPlugin,
+                         octoprint.plugin.TemplatePlugin,
+                         octoprint.plugin.StartupPlugin,
+                         octoprint.plugin.SimpleApiPlugin
+                         ):
 
     def init_sensors(self, sensor_list: List[Sensor]):
         self._log("init_sensors: stored sensors = ",
-            sensor_list)
-        
+                  sensor_list)
+        if hasattr(self, '_bg_read_sensor') and self._bg_read_sensor is not None:
+            self._bg_read_sensor.cancel()
+
         for sensor in sensor_list:
             self._log("init_sensors: processing sensor = ",
-            sensor)
+                      sensor)
             ret_sensor = self.sensor_mgr.handle_msg(sensor)
             self._log("init_sensors: done processing sensor = ",
-            ret_sensor)
-            
+                      ret_sensor)
+
         self._log("init_sensors: interface-enabled sensors = ",
-            self.sensor_mgr.sensor_list())
-    
+                  self.sensor_mgr.sensor_list())
+
+        if hasattr(self, '_bg_read_sensor') and self._bg_read_sensor is not None:
+            self._bg_read_sensor.run()
+
     def read_sensors(self):
         for sensor in self.sensor_mgr.sensor_list():
             sensor.read()
-    
+
     # ~~ StartupPlugin mixin
     def on_after_startup(self):
         self._log("Plugin on startup called")
         sensor_seed_id = self._settings.get(["sensor_id_seed"])
-        read_freq_s = float(self._settings.get(["read_freq_s"]))
         enable_logging = self._settings.get(["enable_logging"])
         enable_mock_test = self._settings.get(["is_mock_test"])
-        self.sensor_mgr = SensorManager(enable_mock_test, sensor_seed_id, OctoprintLogging(self._logger, enable_logging))
+        self.sensor_mgr = SensorManager(
+            enable_mock_test, sensor_seed_id, OctoprintLogging(self._logger, enable_logging))
         self.init_sensors(self._settings.get(["active_sensor_list"]))
-        self._bg_read_sensor = octoprint.util.RepeatedTimer(interval=read_freq_s, function=self.read_sensors, run_first=False)
+        self._bg_read_sensor = octoprint.util.RepeatedTimer(
+            interval=lambda: float(self._settings.get(["read_freq_s"])), function=self.read_sensors, run_first=False)
         self._bg_read_sensor.start()
 
     # ~~ SettingsPlugin mixin
@@ -64,37 +70,38 @@ class ExtSensorMgrPlugin(octoprint.plugin.SettingsPlugin,
     def on_settings_save(self, data):
         self._log("on_settings_save: data = ",
                   data)
-        
+
         if "active_sensor_list" in data:
             del_sensor_list = []
             for sensor in data["active_sensor_list"]:
                 ret_sensor = self.sensor_mgr.handle_msg(sensor)
-                
+
                 if ret_sensor is None:
                     del_sensor_list.append(sensor)
                 else:
                     sensor["sensorId"] = ret_sensor.id
-            
+
             self._log("on_settings_save: Remove invalid stored sensors = ",
-                  del_sensor_list)
+                      del_sensor_list)
             for sensor in del_sensor_list:
                 data["active_sensor_list"].remove(sensor)
-                    
+
         diff = octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
         new_sensor_list = self._settings.get(["active_sensor_list"])
         self._log("on_settings_save: New stored sensors = ",
                   new_sensor_list)
         self.init_sensors(new_sensor_list)
         # notify connected clients to update their dashboard
-        self._plugin_manager.send_plugin_message(self._identifier, dict(upd_sensor_list=new_sensor_list))
-        
+        self._plugin_manager.send_plugin_message(
+            self._identifier, dict(upd_sensor_list=new_sensor_list))
+
         return diff
 
     # ~~ AssetPlugin mixin
     def get_assets(self):
         js_dep = ["js/dep/chart.js/dist/chart.umd.js", "js/dep/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.min.js",
                   "js/dep/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"]
-        
+
         return {
             "js": ["js/ext_sensor_mgr.js", "js/ext_sensor_mgr_settings.js", *js_dep],
             "css": ["css/ext_sensor_mgr.css"],
@@ -124,9 +131,9 @@ class ExtSensorMgrPlugin(octoprint.plugin.SettingsPlugin,
             if sensor is not None:
                 return flask.jsonify(sensor.read())
         elif command == "hist_reading_list":
-           sensor_id = int(data.get('sensor_id'))
-           sensor = self.sensor_mgr.sensor(sensor_id)
-           if sensor is not None and sensor.allow_history:
+            sensor_id = int(data.get('sensor_id'))
+            sensor = self.sensor_mgr.sensor(sensor_id)
+            if sensor is not None and sensor.allow_history:
                 return flask.jsonify(sensor.history_reading_list())
         elif command == "sensor_output_config":
             sensor_id = int(data.get('sensor_id'))
@@ -134,8 +141,8 @@ class ExtSensorMgrPlugin(octoprint.plugin.SettingsPlugin,
             if sensor is not None:
                 return flask.jsonify(sensor.output_config())
 
-
     # ~~ SimpleApiPlugin hook
+
     def get_api_commands(self):
         return dict(
             config_param_list=["sensor_type_id"],
@@ -166,12 +173,10 @@ class ExtSensorMgrPlugin(octoprint.plugin.SettingsPlugin,
         }
 
     def _log(self, data, obj=None):
-        enable_log = self._settings.get(["enable_logging"])
-        if enable_log:
-            if obj is not None:
-                self._logger.debug(data + str(obj))
-            else:
-                self._logger.debug(data)
+        if obj is not None:
+            self._logger.debug(data + str(obj))
+        else:
+            self._logger.debug(data)
 
 
 # If you want your plugin to be registered within OctoPrint under a different name than what you defined in setup.py
