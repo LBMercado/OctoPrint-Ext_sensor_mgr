@@ -366,7 +366,14 @@ $(function () {
             return ko.pureComputed(function () {
                 displDesc = name != null ? name.toUpperCase() + ": " : "";
                 displVal = ko.isObservable(value) ? value() : value;
-                displ = "".concat(displDesc, displVal, " ", unit());
+                displ = "".concat(
+                    displDesc,
+                    !isNaN(parseFloat(displVal))
+                        ? displVal.toFixed(2)
+                        : displVal,
+                    " ",
+                    unit()
+                );
                 return displ;
             });
         };
