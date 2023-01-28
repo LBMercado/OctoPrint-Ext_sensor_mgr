@@ -1,12 +1,13 @@
 from collections import deque
 from enum import Enum
-from typing import Union
+from typing import Dict, Union
 from datetime import datetime
 from octoprint_ext_sensor_mgr.sensor.config_property import ConfigProperty
 from octoprint_ext_sensor_mgr.sensor.sensor_out_type import SensorOutputType
 
+
 class Sensor:
-    _config_params: dict[str, ConfigProperty] = dict()
+    _config_params: Dict[str, ConfigProperty] = dict()
     _is_config_params_init = False
     output_type: SensorOutputType
 
@@ -30,7 +31,7 @@ class Sensor:
     @classmethod
     def config_params(cls):
         if not cls._is_config_params_init:
-            
+
             group_seq = ('Common',)
             cls._config_params['max_readings'] = ConfigProperty(
                 data_type=int, value_list=[], default_value=1, label='Maximum number of readings', group_seq=group_seq)
@@ -44,7 +45,7 @@ class Sensor:
         default = cls.config_params()[param].default_value
         type = cls.config_params()[param].data_type
         value = config[param] if param in config else default
-        
+
         try:
             if type == int:
                 return int(value)
@@ -59,7 +60,7 @@ class Sensor:
 
     def output_config(self) -> dict():
         raise NotImplementedError()
-    
+
     def init_history_reading(self, max_readings=1):
         self.max_readings = max_readings
         self.past_readings = deque(maxlen=self.max_readings)
@@ -76,7 +77,7 @@ class Sensor:
                 return
         else:
             reading = dict(value=reading)
-        
+
         reading['timestamp'] = datetime.timestamp(datetime.now())
         self.past_readings.append(reading)
 
