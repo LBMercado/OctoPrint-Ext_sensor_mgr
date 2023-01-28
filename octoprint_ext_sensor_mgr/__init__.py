@@ -21,8 +21,6 @@ class ExtSensorMgrPlugin(octoprint.plugin.SettingsPlugin,
     def init_sensors(self, sensor_list: List[Sensor]):
         self._log("init_sensors: stored sensors = ",
                   sensor_list)
-        if hasattr(self, '_bg_read_sensor') and self._bg_read_sensor is not None:
-            self._bg_read_sensor.cancel()
 
         for sensor in sensor_list:
             self._log("init_sensors: processing sensor = ",
@@ -33,9 +31,6 @@ class ExtSensorMgrPlugin(octoprint.plugin.SettingsPlugin,
 
         self._log("init_sensors: interface-enabled sensors = ",
                   self.sensor_mgr.sensor_list())
-
-        if hasattr(self, '_bg_read_sensor') and self._bg_read_sensor is not None:
-            self._bg_read_sensor.run()
 
     def read_sensors(self):
         for sensor in self.sensor_mgr.sensor_list():
