@@ -26,6 +26,9 @@ $(function () {
                             val),
                         (obj = config)
                     );
+                    const groupSeq = ko.isObservable(config[val].group_seq)
+                        ? config[val].group_seq()
+                        : config[val].group_seq;
                     return {
                         param: val,
                         type:
@@ -33,7 +36,7 @@ $(function () {
                                 ? self.CONFIG_DATA_TYPE.Options
                                 : self.CONFIG_DATA_TYPE.Text,
                         label: config[val].label,
-                        group: config[val].group_seq.map((val, idx) => {
+                        group: groupSeq.map((val, idx) => {
                             return { name: val, level: idx + 1 };
                         }),
                     };
@@ -119,6 +122,10 @@ $(function () {
                     (obj = sensorConfig)
                 );
                 if (
+                    sensorConfig != null &&
+                    supp_config != null &&
+                    sensorConfig[supp_config.param] != null &&
+                    sensorConfig[supp_config.param].hasOwnProperty("type") &&
                     supp_config.type == sensorConfig[supp_config.param].type()
                 ) {
                     return sensorConfig[supp_config.param];
@@ -129,7 +136,10 @@ $(function () {
 
         self.init_config_param = function (config_param, value = null) {
             // check if default value is enum
-            if (typeof config_param.default_value === "object") {
+            if (
+                config_param.default_value != null &&
+                typeof config_param.default_value === "object"
+            ) {
                 config_param.value = value ?? config_param.default_value.key;
             } else {
                 config_param.value = value ?? config_param.default_value;
@@ -159,7 +169,7 @@ $(function () {
                 (obj = sensor)
             );
 
-            if (!sensor.hasOwnProperty("config")) {
+            if (!sensor.hasOwnProperty("config") || sensor.config == null) {
                 sensor.config = { ...supportedConfig };
                 config = sensor.config;
                 self._log(
@@ -222,13 +232,24 @@ $(function () {
         };
 
         self.onSensorTypeChange = function (sensor) {
-            if (sensor) {
+            if (sensor != null) {
+                self.wipeSupportedSensorConfig(sensor);
                 // wipe existing config
                 sensor.config = { name: sensor.config.name };
-
+                self._log(
+                    "onSensorTypeChange: wiped config = ",
+                    (obj = sensor.config)
+                );
                 self.getCommandParamList(sensor.sensorType()).done((res) => {
                     self.prop_sensor_config(sensor, res);
                 });
+            }
+        };
+
+        self.wipeSupportedSensorConfig = function (sensor) {
+            if (sensor != null && ko.isObservable(sensor)) {
+                self.selectedSupportedConfig(null);
+                self.selectedSuppConfigGroupList([]);
             }
         };
 
@@ -243,11 +264,30 @@ $(function () {
 
         self.disableSensorConfigCb = function (sensor) {
             return ko.pureComputed(() => {
-                if (!ko.isObservable(sensor) || !sensor()) {
+                if (
+                    !ko.isObservable(sensor) ||
+                    sensor() == null ||
+                    self.selectedSupportedConfig() == null
+                ) {
                     return true;
                 }
 
                 return sensor().sensorType() == self._null_sensor_type.value();
+            });
+        };
+
+        self.modalSensorCb = function (sensor) {
+            return ko.pureComputed(() => {
+                if (
+                    !ko.isObservable(sensor) ||
+                    sensor() == null ||
+                    self.selectedSupportedConfig() == null ||
+                    sensor().sensorType() == self._null_sensor_type.value()
+                ) {
+                    return null;
+                }
+
+                return sensor;
             });
         };
 
@@ -266,7 +306,9 @@ $(function () {
                         var prevGroup = null,
                             currGroup = null,
                             level;
-                        const groupSeq = configEntry.group_seq;
+                        const groupSeq = ko.isObservable(configEntry.group_seq)
+                            ? configEntry.group_seq()
+                            : configEntry.group_seq;
                         groupSeq.forEach((group, idx) => {
                             level = idx + 1;
 

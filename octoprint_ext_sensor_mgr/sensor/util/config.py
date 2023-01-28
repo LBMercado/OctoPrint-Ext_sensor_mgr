@@ -16,10 +16,15 @@ from octoprint_ext_sensor_mgr.sensor.sensor_dht22 import DHT22 as Dht22
 from typing import Dict
 import copy
 
-        
+
 def determine_sensor_config(sensorType: SensorType, is_test=False):
     cls: Sensor = sensor_cls(sensorType, is_test)
-    return cls.config_params()
+
+    if cls is not None:
+        return cls.config_params()
+    else:
+        return None
+
 
 def sensor_cls(sensorType: SensorType, is_test=False):
     cls: Sensor = None
@@ -39,37 +44,39 @@ def sensor_cls(sensorType: SensorType, is_test=False):
     elif sensorType == sensorType.ENV3_UNIT:
         cls = Env3Unit
         cls_mock = Env3UnitMock
-    
+
     if not is_test:
         return cls
     else:
         return cls_mock
 
+
 def transform_sensor_config(config: Dict[str, ConfigProperty]):
     if config is None:
         return None
     ret_config = copy.deepcopy(config)
-    
+
     for k in ret_config.keys():
         ret_config[k] = ret_config[k].to_dict()
         # handle types to be serializable
         if issubclass(ret_config[k]['data_type'], Enum):
             ret_config[k]['value_list'] = [
                 dict(key=e.value, val=e.name) for e in ret_config[k]['value_list']]
-            ret_config[k]['default_value'] = dict(key=ret_config[k]['default_value'].value, val=ret_config[k]['default_value'].name)
-        
+            ret_config[k]['default_value'] = dict(
+                key=ret_config[k]['default_value'].value, val=ret_config[k]['default_value'].name)
+
         # delete pairs we don't need
         del ret_config[k]['data_type']
-    
+
     return ret_config
+
 
 def parse_sensor_config(config: Dict[str, dict]):
     if config is None:
         return None
     ret_config = copy.deepcopy(config)
-    
+
     for k in ret_config:
         ret_config[k] = ret_config[k]['value'] if 'value' in ret_config[k] else None
-        
-    return ret_config
 
+    return ret_config

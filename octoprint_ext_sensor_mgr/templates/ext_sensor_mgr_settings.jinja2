@@ -77,34 +77,32 @@
     </div>
 </div>
 
-<!-- ko ifnot: $root.disableSensorConfigCb(selectedSensor) -->
-<div id="SensorManagerConfigure" data-bind="with: selectedSensor" class="modal hide fade-in">
+<div id="SensorManagerConfigure" data-bind="with: $root.modalSensorCb(selectedSensor)" class="modal hide fade-in">
     <div class="modal-header">
-        <a href="#" class="close" data-dismiss="modal" aria-hidden="true">&times;</a>
+        <a href="#" class="close" data-dismiss="modal" aria-hidden="true"
+            data-bind="click: function() { $root.wipeSupportedSensorConfig($data) }">&times;</a>
         <h3>{{ _('Configuration') }}</h3>
     </div>
 
-    <div class="modal-body" data-bind="foreach: $root.selectedSuppConfigGroupList">
-        <form class="form-horizontal" onsubmit="return false;">
+    <div class="modal-body">
+        <form class="form-horizontal" onsubmit="return false;" data-bind="foreach: $root.selectedSuppConfigGroupList">
             <div data-bind="if: level == 1">
                 <h4 data-bind="text: name"></h4>
                 <div data-bind="foreach: $root.selectedSupportedConfigList">
                     <!-- ko if: group[0].name == $parent.name && group[0].level == $parent.level -->
                     <!-- ko if: type == $root.CONFIG_DATA_TYPE.Options -->
-                    <div class="control-group"
-                        data-bind="using: $root.matchingParamConfigCb($data, $parents[1].config)">
+                    <div class="control-group">
                         <label class="control-label" data-bind="text: label ?? param"></label>
-                        <div class="controls">
+                        <div class="controls" data-bind="with: $root.matchingParamConfigCb($data, $parents[1].config)">
                             <select
                                 data-bind="value: value, options: value_list, optionsText: 'val', optionsValue: 'key', valueAllowUnset: true"></select>
                         </div>
                     </div>
                     <!-- /ko -->
                     <!-- ko if: type == $root.CONFIG_DATA_TYPE.Text -->
-                    <div class="control-group"
-                        data-bind="using: $root.matchingParamConfigCb($data, $parents[1].config)">
+                    <div class="control-group">
                         <label class="control-label" data-bind="text: label ?? param"></label>
-                        <div class="controls">
+                        <div class="controls" data-bind="with: $root.matchingParamConfigCb($data, $parents[1].config)">
                             <input type="text" data-bind="value: value" />
                         </div>
                     </div>
@@ -116,8 +114,8 @@
     </div>
     <div class="modal-footer">
         <div class="row-fluid">
-            <button type="button" class="btn" data-dismiss="modal">{{ _('Close') }}</button>
+            <button type="button" class="btn" data-dismiss="modal"
+                data-bind="click: function() { $root.wipeSupportedSensorConfig($data) }">{{ _('Close') }}</button>
         </div>
     </div>
 </div>
-<!-- /ko -->
