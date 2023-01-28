@@ -50,7 +50,11 @@ $(function () {
             if (self._do_log) {
                 const dbg = "ExtSensorMgrViewModel: " + info;
 
-                if (obj !== undefined) {
+                if (
+                    obj !== undefined ||
+                    logType == self.LOG_TYPE.ERROR ||
+                    logType == self.LOG_TYPE.WARNING
+                ) {
                     switch (logType) {
                         case self.LOG_TYPE.ERROR:
                             console.error(dbg + " %o", obj);

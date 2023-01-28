@@ -60,6 +60,7 @@ $(function () {
             ERROR: 2,
             WARNING: 3,
         };
+        self.apiCache = {};
 
         // functions / methods
         self.toggleSensorButtonCss = function (data) {
@@ -210,7 +211,7 @@ $(function () {
             var sensor = self.selectedSensor();
             self._log((info = "configure sensor"), (obj = sensor));
             if (sensor) {
-                self.getCommandParamList(sensor.sensorType()).done((res) => {
+                self.getCommandParamList(sensor.sensorType()).then((res) => {
                     self._log(
                         (info =
                             "API command config param list for sensor result"),
@@ -224,11 +225,26 @@ $(function () {
         };
 
         self.getCommandParamList = function (sensorTypeKey) {
+            const onSuccess = function (res) {
+                if (!self.apiCache.hasOwnProperty(sensorTypeKey)) {
+                    self.apiCache[sensorTypeKey] = res;
+                }
+                return res;
+            };
+
+            if (self.apiCache.hasOwnProperty(sensorTypeKey)) {
+                self._log(
+                    (info = "getCommandParamList: cache hit"),
+                    (obj = sensorTypeKey)
+                );
+                return Promise.resolve(self.apiCache[sensorTypeKey]);
+            }
+
             return OctoPrint.simpleApiCommand(
                 "ext_sensor_mgr",
                 "config_param_list",
                 { sensor_type_id: sensorTypeKey }
-            );
+            ).done(onSuccess);
         };
 
         self.onSensorTypeChange = function (sensor) {
@@ -240,7 +256,7 @@ $(function () {
                     "onSensorTypeChange: wiped config = ",
                     (obj = sensor.config)
                 );
-                self.getCommandParamList(sensor.sensorType()).done((res) => {
+                self.getCommandParamList(sensor.sensorType()).then((res) => {
                     self.prop_sensor_config(sensor, res);
                 });
             }
@@ -405,7 +421,11 @@ $(function () {
             obj = undefined,
             logType = self.LOG_TYPE.INFO
         ) {
-            if (self._do_log) {
+            if (
+                self._do_log ||
+                logType == self.LOG_TYPE.ERROR ||
+                logType == self.LOG_TYPE.WARNING
+            ) {
                 const dbg = "ExtSensorMgrSettingsViewModel: " + info;
 
                 if (obj !== undefined) {
