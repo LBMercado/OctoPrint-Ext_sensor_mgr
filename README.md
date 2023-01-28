@@ -1,6 +1,6 @@
-# OctoPrint-Ext_sensor_mgr
+# OctoPrint-Ext_sensor_mgr (Octoprint External Sensor Manager)
 
-**TODO:** Describe what your plugin does.
+A sensor management interface for monitoring their outputs directly in your OctoPrint instance.
 
 ## Setup
 
@@ -9,8 +9,7 @@ or manually using this URL:
 
     https://github.com/LBMercado/OctoPrint-Ext_sensor_mgr/archive/master.zip
 
-**TODO:** Describe how to install your plugin, if more needs to be done than just installing it via pip or through
-the plugin manager.
+**TODO:** additional setup requirements
 
 ## Configuration
 
