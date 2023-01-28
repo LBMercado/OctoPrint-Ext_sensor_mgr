@@ -550,9 +550,17 @@ $(function () {
                             for (const [paramKey, paramVal] of Object.entries(
                                 s.config[configKey]
                             )) {
-                                viewSensor.config[configKey][paramKey](
-                                    paramVal
-                                );
+                                if (
+                                    ko.isObservable(
+                                        viewSensor.config[configKey][paramKey]
+                                    )
+                                )
+                                    viewSensor.config[configKey][paramKey](
+                                        paramVal
+                                    );
+                                else
+                                    viewSensor.config[configKey][paramKey] =
+                                        paramVal;
                             }
                         });
 
