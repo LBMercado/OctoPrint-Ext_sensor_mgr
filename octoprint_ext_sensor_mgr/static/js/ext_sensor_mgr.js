@@ -505,7 +505,7 @@ $(function () {
                 self.settingsVM.settings.plugins.ext_sensor_mgr.supported_sensor_list()
             );
             self.read_frequency_ms =
-                self.settingsVM.settings.plugins.ext_sensor_mgr.read_freq_s() *
+                self.settingsVM.settings.plugins.ext_sensor_mgr.web_update_freq_s() *
                 1000;
             // deep copy to prevent modification of settings
             var sensorList =

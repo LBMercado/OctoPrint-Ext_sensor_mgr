@@ -54,7 +54,8 @@ class ExtSensorMgrPlugin(octoprint.plugin.SettingsPlugin,
         return dict(
             active_sensor_list=[],
             sensor_id_seed=1,
-            read_freq_s=2,
+            read_freq_s=20,
+            web_update_freq_s=2,
             is_mock_test=False,
             enable_logging=False,
             supported_sensor_list=[dict(value=s.value, name=s.name)
