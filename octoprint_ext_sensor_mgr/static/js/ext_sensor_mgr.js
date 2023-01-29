@@ -213,7 +213,6 @@ $(function () {
                                         outputCfg.unit +
                                         ")", //TODO: special formating for naming?
                                 },
-                                suggestedMax: 100, //TODO: variable maximums/minimum for given sensor
                             },
                         },
                     };
