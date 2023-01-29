@@ -28,7 +28,7 @@
             "name": "Fast build + launch Chrome against localhost",
             "url": "http://localhost:5000",
             "webRoot": "${workspaceFolder}",
-            "preLaunchTask": "fast-build-and-run",
+            "preLaunchTask": "quick-build-and-run",
             "postDebugTask": "kill-tasks"
         },
     ]

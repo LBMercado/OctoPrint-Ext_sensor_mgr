@@ -1,140 +1,116 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "Setup dev terminal",
-            "type": "shell",
-            "command": "source ../OctoPrint/dev-venv/bin/activate",
-            "presentation": {
-                "echo": false,
-                "reveal": "always",
-                "focus": true,
-                "panel": "dedicated",
-                "showReuseMessage": true,
-                "clear": false
-            },
-            "runOptions": {"runOn": "folderOpen"},
-        },
-        {
-            "label": "build-plugin",
-            "type": "shell",
-            "command": "source ../OctoPrint/dev-venv/bin/activate && octoprint dev plugin:install",
-            "group": "build",
-            "dependsOn": [
-                "compile-less-sources",
-                "build-dep"
-            ]
-        },
-        {
-            "label": "build-plugin-quick",
-            "type": "shell",
-            "command": "source ../OctoPrint/dev-venv/bin/activate && octoprint dev plugin:install",
-            "group": "build",
-            "dependsOn": [
-                "compile-less-sources",
-            ]
-        },
-        {
-            "label": "build-dep",
-            "type": "shell",
-            "command": "source ../OctoPrint/dev-venv/bin/activate && octoprint dev plugin:install",
-            "group": "build",
-            "dependsOrder": "sequence",
-            "dependsOn": [
-                "setup-js-dep",
-                "mkdir-js-dep",
-                "copy-js-dep"
-            ]
-        },
-        {
-            "label": "build-and-run",
-            "type": "shell",
-            "group": "build",
-            "dependsOrder": "sequence",
-            "dependsOn": [
-                "build-plugin",
-                "server-run"
-            ]
-        },
-        {
-            "label": "fast-build-and-run",
-            "type": "shell",
-            "group": "build",
-            "dependsOrder": "sequence",
-            "dependsOn": [
-                "build-plugin-quick",
-                "server-run"
-            ]
-        },
-        {
-            "label": "compile-less-sources",
-            "type": "shell",
-            "command": "lessc octoprint_ext_sensor_mgr/static/less/ext_sensor_mgr.less  octoprint_ext_sensor_mgr/static/css/ext_sensor_mgr.css",
-            "problemMatcher": []
-        },
-        {
-            "label": "server-run",
-            "type": "shell",
-            "command": "source ../OctoPrint/dev-venv/bin/activate && octoprint serve",
-            "isBackground": true,
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Setup dev terminal",
+      "type": "shell",
+      "command": "source ../OctoPrint/dev-venv/bin/activate",
+      "presentation": {
+        "echo": false,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "runOptions": { "runOn": "folderOpen" }
+    },
+    {
+      "label": "build-plugin",
+      "type": "shell",
+      "command": "source ../OctoPrint/dev-venv/bin/activate && octoprint dev plugin:install",
+      "group": "build",
+      "dependsOn": ["compile-less-sources", "build-js-dep"]
+    },
+    {
+      "label": "build-plugin-quick",
+      "type": "shell",
+      "command": "source ../OctoPrint/dev-venv/bin/activate && octoprint dev plugin:install",
+      "group": "build"
+    },
+    {
+      "label": "build-and-run",
+      "type": "shell",
+      "group": "build",
+      "dependsOrder": "sequence",
+      "dependsOn": ["build-plugin", "server-run"]
+    },
+    {
+      "label": "quick-build-and-run",
+      "type": "shell",
+      "group": "build",
+      "dependsOrder": "sequence",
+      "dependsOn": ["build-plugin-quick", "server-run"]
+    },
+    {
+      "label": "compile-less-sources",
+      "type": "shell",
+      "command": "lessc octoprint_ext_sensor_mgr/static/less/ext_sensor_mgr.less  octoprint_ext_sensor_mgr/static/css/ext_sensor_mgr.css",
+      "problemMatcher": []
+    },
+    {
+      "label": "server-run",
+      "type": "shell",
+      "command": "source ../OctoPrint/dev-venv/bin/activate && octoprint serve",
+      "isBackground": true,
 
-            "problemMatcher": [
-                {
-                    "pattern": [
-                      {
-                        "regexp": ".",
-                        "file": 1,
-                        "location": 2,
-                        "message": 3
-                      }
-                    ],
-                    "background": {
-                      "activeOnStart": true,
-                      "beginsPattern": ".",
-                      "endsPattern": ".",
-                    }
-                }
-            ]
-        },
+      "problemMatcher": [
         {
-            "label": "kill-tasks",
-            "type": "shell",
-            "command": "echo ${input:terminate}",
-            "problemMatcher": []
-        },
-        {
-            "label": "setup-js-dep",
-            "type": "shell",
-            "command": "npm i chart.js && npm i date-fns chartjs-adapter-date-fns",
-            "problemMatcher": []
-        },
-        {
-            "label": "mkdir-js-dep",
-            "type": "shell",
-            "command": "mkdir -p octoprint_ext_sensor_mgr/static/js/dep",
-            "problemMatcher": []
-        },
-        {
-            "label": "copy-js-dep",
-            "type": "shell",
-            "command": "cp -r node_modules/chart.js octoprint_ext_sensor_mgr/static/js/dep/chart.js && cp -r node_modules/chartjs-adapter-date-fns octoprint_ext_sensor_mgr/static/js/dep/chartjs-adapter-date-fns",
-            "problemMatcher": []
-        },
-        {
-            "label": "setup-py-dep",
-            "type": "shell",
-            "command": "mkdir -p octoprint_ext_sensor_mgr/dep && cd octoprint_ext_sensor_mgr/dep && git clone https://github.com/nvl1109/orangepi_zero_gpio.git && git clone https://github.com/jingl3s/DHT11-DHT22-Python-library-Orange-PI.git DHT_Python_library_Orange_PI",
-            "problemMatcher": []
-        },
-    ],
-    "inputs": [
-        {
-            "id": "terminate",
-            "type": "command",
-            "command": "workbench.action.tasks.terminate",
-            "args": "terminateAll"
+          "pattern": [
+            {
+              "regexp": ".",
+              "file": 1,
+              "location": 2,
+              "message": 3
+            }
+          ],
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": ".",
+            "endsPattern": "."
+          }
         }
-    ]
+      ]
+    },
+    {
+      "label": "kill-tasks",
+      "type": "shell",
+      "command": "echo ${input:terminate}",
+      "problemMatcher": []
+    },
+    {
+      "label": "build-js-dep",
+      "type": "shell",
+      "dependsOrder": "sequence",
+      "dependsOn": ["setup-js-dep", "mkdir-js-dep", "copy-js-dep"]
+    },
+    {
+      "label": "setup-js-dep",
+      "type": "shell",
+      "command": "npm i chart.js && npm i date-fns chartjs-adapter-date-fns@3.0.0",
+      "problemMatcher": []
+    },
+    {
+      "label": "mkdir-js-dep",
+      "type": "shell",
+      "command": "mkdir -p octoprint_ext_sensor_mgr/static/js/dep",
+      "problemMatcher": []
+    },
+    {
+      "label": "copy-js-dep",
+      "type": "shell",
+      "command": "cp node_modules/chart.js/dist/chart.umd.js octoprint_ext_sensor_mgr/static/js/dep/chart.umd.js && cp node_modules/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.min.js octoprint_ext_sensor_mgr/static/js/dep/chartjs-adapter-date-fns.min.js && cp node_modules/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js octoprint_ext_sensor_mgr/static/js/dep/chartjs-adapter-date-fns.bundle.min.js",
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "terminate",
+      "type": "command",
+      "command": "workbench.action.tasks.terminate",
+      "args": "terminateAll"
+    }
+  ]
 }
