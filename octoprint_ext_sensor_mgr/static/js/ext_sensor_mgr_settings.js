@@ -19,10 +19,10 @@ $(function () {
         self.selectedSupportedConfigList = ko.computed(function () {
             config = self.selectedSupportedConfig();
             if (config != null) {
-                return Object.keys(config).map((val) => {
+                const suppConfig = Object.keys(config).map((val) => {
                     self._log(
                         (info =
-                            "selectedSupportedConfigList ko computed: given config for key = " +
+                            "selectedSupportedConfigList (ko computed): given config for key = " +
                             val),
                         (obj = config)
                     );
@@ -41,11 +41,81 @@ $(function () {
                         }),
                     };
                 });
+                self._log(
+                    (info =
+                        "selectedSupportedConfigList (ko computed): suppConfig"),
+                    (obj = suppConfig)
+                );
+                return suppConfig;
             } else {
                 return [];
             }
         }, self);
-        self.selectedSuppConfigGroupList = ko.observableArray([]);
+        self.selectedSuppConfigGroupList = ko.computed(function () {
+            var configGroupList,
+                config = self.selectedSupportedConfig();
+            if (config != null) {
+                self._log(
+                    (info = "selectedSuppConfigGroupList: config"),
+                    (obj = config)
+                );
+                configGroupList = Object.values(config).reduce(
+                    (groupList, configEntry) => {
+                        var prevGroup = null,
+                            currGroup = null,
+                            level;
+                        const groupSeq = ko.isObservable(configEntry.group_seq)
+                            ? configEntry.group_seq()
+                            : configEntry.group_seq;
+                        groupSeq.forEach((group, idx) => {
+                            level = idx + 1;
+
+                            // main grouping
+                            if (prevGroup == null) {
+                                currGroup = groupList.find(
+                                    (g) =>
+                                        g.name == group &&
+                                        g.level == level &&
+                                        g.parentGroup == null
+                                );
+                                if (currGroup == null) {
+                                    groupList.push({
+                                        name: group,
+                                        level: level,
+                                        parentGroup: null,
+                                    });
+                                }
+                            } else {
+                                // subgroupings
+                                currGroup = groupList.find(
+                                    (g) =>
+                                        g.name == group &&
+                                        g.level == level &&
+                                        g.parentGroup == prevGroup
+                                );
+                                if (currGroup == null) {
+                                    groupList.push({
+                                        name: group,
+                                        level: level,
+                                        parentGroup: prevGroup,
+                                    });
+                                }
+                            }
+                            prevGroup = currGroup;
+                        });
+                        return groupList;
+                    },
+                    []
+                );
+                self._log(
+                    (info = "selectedSuppConfigGroupList: configGroupList"),
+                    (obj = configGroupList)
+                );
+                return configGroupList;
+            } else {
+                return [];
+            }
+        });
 
         // others
         self._null_sensor_type = null;
@@ -61,6 +131,7 @@ $(function () {
             WARNING: 3,
         };
         self.apiCache = {};
+        self.suppConfigGroupList = [];
 
         // functions / methods
         self.toggleSensorButtonCss = function (data) {
@@ -129,6 +200,10 @@ $(function () {
                     sensorConfig[supp_config.param].hasOwnProperty("type") &&
                     supp_config.type == sensorConfig[supp_config.param].type()
                 ) {
+                    self._log(
+                        (info = "matchingParamConfigCb: (3) return"),
+                        (obj = sensorConfig[supp_config.param])
+                    );
                     return sensorConfig[supp_config.param];
                 }
                 return null;
@@ -136,6 +211,10 @@ $(function () {
         };
 
         self.init_config_param = function (config_param, value = null) {
+            self._log(
+                (info = "init_config_param: config_param"),
+                (obj = config_param)
+            );
             // check if default value is enum
             if (
                 config_param.default_value != null &&
@@ -151,7 +230,8 @@ $(function () {
                     : self.CONFIG_DATA_TYPE.Text;
 
             for (const param in config_param) {
-                config_param[param] = ko.observable(config_param[param]);
+                if (!ko.isObservable(config_param[param]))
+                    config_param[param] = ko.observable(config_param[param]);
             }
         };
 
@@ -186,24 +266,15 @@ $(function () {
                     item = { ...supportedConfig[k] };
                     self.init_config_param(
                         item,
-                        config.hasOwnProperty(k) ? config[k].value() : null
+                        config.hasOwnProperty(k) ? config[k].value : null
                     );
                     config[k] = item;
                 }
             }
-            self.selectedSupportedConfig(supportedConfig);
-            self._log(
-                (info = "prop_sensor_config: config list ko computed"),
-                (obj = self.selectedSupportedConfigList())
-            );
+
             self._log(
                 (info = "prop_sensor_config: processed config list"),
                 (obj = config)
-            );
-            self.selectedSuppConfigGroupList(self.getConfigGroupList());
-            self._log(
-                (info = "prop_sensor_config: processed group list"),
-                (obj = self.selectedSuppConfigGroupList())
             );
         };
 
@@ -218,6 +289,7 @@ $(function () {
                         (obj = res)
                     );
                     self.prop_sensor_config(sensor, res);
+                    self.selectedSupportedConfig(res);
                     self._log((info = "Modify sensor post:  "), (obj = sensor));
                     $("#SensorManagerConfigure").modal("show");
                 });
@@ -258,6 +330,7 @@ $(function () {
                 );
                 self.getCommandParamList(sensor.sensorType()).then((res) => {
                     self.prop_sensor_config(sensor, res);
+                    self.selectedSupportedConfig(res);
                 });
             }
         };
@@ -312,64 +385,6 @@ $(function () {
             self._log((info = "onSelectSensor: selected sensor"), (obj = data));
         };
 
-        self.getConfigGroupList = function (doReset = true) {
-            if (doReset) self.selectedSuppConfigGroupList([]);
-            config = self.selectedSupportedConfig();
-            self._log((info = "getConfigGroupList: config"), (obj = config));
-            if (config != null) {
-                return Object.values(config).reduce(
-                    (groupList, configEntry) => {
-                        var prevGroup = null,
-                            currGroup = null,
-                            level;
-                        const groupSeq = ko.isObservable(configEntry.group_seq)
-                            ? configEntry.group_seq()
-                            : configEntry.group_seq;
-                        groupSeq.forEach((group, idx) => {
-                            level = idx + 1;
-
-                            // main grouping
-                            if (prevGroup == null) {
-                                currGroup = groupList.find(
-                                    (g) =>
-                                        g.name == group &&
-                                        g.level == level &&
-                                        g.parentGroup == null
-                                );
-                                if (currGroup == null) {
-                                    groupList.push({
-                                        name: group,
-                                        level: level,
-                                        parentGroup: null,
-                                    });
-                                }
-                            } else {
-                                // subgroupings
-                                currGroup = groupList.find(
-                                    (g) =>
-                                        g.name == group &&
-                                        g.level == level &&
-                                        g.parentGroup == prevGroup
-                                );
-                                if (currGroup == null) {
-                                    groupList.push({
-                                        name: group,
-                                        level: level,
-                                        parentGroup: prevGroup,
-                                    });
-                                }
-                            }
-                            prevGroup = currGroup;
-                        });
-                        return groupList;
-                    },
-                    self.selectedSuppConfigGroupList()
-                );
-            } else {
-                return [];
-            }
-        };
-
         self.onBeforeBinding = function () {
             self._do_log =
                 self.settingsVM.settings.plugins.ext_sensor_mgr.enable_logging();
@@ -377,13 +392,6 @@ $(function () {
                 self.settingsVM.settings.plugins.ext_sensor_mgr.is_mock_test();
 
             var sensorList =
-                self.settingsVM.settings.plugins.ext_sensor_mgr.active_sensor_list();
-            self.sensorList(sensorList);
-            self._log(
-                (info = "onBeforeBinding: active sensors: "),
-                (obj = self.sensorList())
-            );
-            sensorList =
                 self.settingsVM.settings.plugins.ext_sensor_mgr.supported_sensor_list();
             self.supportedSensorList(sensorList);
             self._null_sensor_type = self
@@ -399,6 +407,40 @@ $(function () {
                 (info = "onBeforeBinding: supported sensors: "),
                 (obj = self.supportedSensorList())
             );
+
+            sensorList =
+                self.settingsVM.settings.plugins.ext_sensor_mgr.active_sensor_list();
+            self._log(
+                (info = "onBeforeBinding: active sensors (before process): "),
+                (obj = sensorList)
+            );
+            self.sensorList([]);
+
+            // get available configuration for each sensor
+            const updatePromList = [];
+            for (const sensor of sensorList) {
+                updatePromList.push(
+                    self
+                        .getCommandParamList(sensor.sensorType())
+                        .then((res) => {
+                            self._log(
+                                (info =
+                                    "API command config param list for sensor result"),
+                                (obj = res)
+                            );
+                            self.prop_sensor_config(sensor, res);
+                            return sensor;
+                        })
+                );
+            }
+            Promise.all(updatePromList).then((prcSensorList) => {
+                self.sensorList(prcSensorList);
+                self._log(
+                    (info =
+                        "onBeforeBinding: active sensors (after process): "),
+                    (obj = self.sensorList())
+                );
+            });
         };
 
         self.onSettingsBeforeSave = function () {

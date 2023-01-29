@@ -71,12 +71,13 @@ def transform_sensor_config(config: Dict[str, ConfigProperty]):
     return ret_config
 
 
-def parse_sensor_config(config: Dict[str, dict]):
+def parse_sensor_config(config: Dict[str, dict], do_deepcopy=True):
     if config is None:
         return None
-    ret_config = copy.deepcopy(config)
+    ret_config = copy.deepcopy(config) if do_deepcopy else config
 
     for k in ret_config:
-        ret_config[k] = ret_config[k]['value'] if 'value' in ret_config[k] else None
+        if isinstance(ret_config[k], dict):
+            ret_config[k] = ret_config[k]['value'] if 'value' in ret_config[k] else None
 
     return ret_config

@@ -159,7 +159,7 @@ $(function () {
             }));
             initDatasets = [
                 {
-                    label: sensor.config.name.value(),
+                    label: sensor.config.name(),
                     data: chartData,
                 },
             ];
@@ -179,8 +179,8 @@ $(function () {
                             outputCfg.sub_output_list
                         )) {
                             subOutDs = {
-                                label: sensor.config.name
-                                    .value()
+                                label: sensor.config
+                                    .name()
                                     .concat(" (", subOutput, ")"),
                                 data: chartData,
                                 parsing: {
@@ -609,6 +609,13 @@ $(function () {
 
                 // delete removed sensors
                 const existSensorIdList = sensorList.map((s) => s.sensorId);
+                self.sensorList().forEach((s) => {
+                    if (!existSensorIdList.includes(s.sensorId())) {
+                        clearInterval(s.read_cb);
+                        s.read_cb = null;
+                    }
+                });
+
                 const removedList = self.sensorList.remove(
                     (s) => !existSensorIdList.includes(s.sensorId())
                 );

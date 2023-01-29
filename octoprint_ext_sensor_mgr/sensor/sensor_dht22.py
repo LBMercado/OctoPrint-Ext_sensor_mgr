@@ -18,31 +18,33 @@ from octoprint_ext_sensor_mgr.sensor.util.dev import gpio_dev_list
 import gpiod
 import copy
 
+
 class DHT22(Sensor):
     _is_config_params_init = False
     START_TIME_MS = 100
     READY_COMM_MS = 1.8
     BITBANG_PERIOD_S = 0.25
-    
+
     def __init__(self):
         super().__init__()
         self.last_read_ts = None
         self.type = SensorType.DHT22
-        self.output_type =  SensorOutputType.TEMPERATURE | SensorOutputType.HUMIDITY
+        self.output_type = SensorOutputType.TEMPERATURE | SensorOutputType.HUMIDITY
         self.output_type_unit = None
-    
+
     def reset(self):
         super().reset()
-    
+
     @classmethod
     def config_params(cls):
         if not cls._is_config_params_init:
-            
-            cls._config_params = copy.deepcopy(super(DHT22, cls).config_params())
+
+            cls._config_params = copy.deepcopy(
+                super(DHT22, cls).config_params())
             cls._config_params['max_readings'].default_value = 60
-            
+
             group_seq = ('Sensor Configuration',)
-            
+
             cls._config_params['gpio_device'] = ConfigProperty(data_type=str, value_list=gpio_dev_list(
             ), default_value=None, label='GPIO Device', group_seq=group_seq)
             cls._config_params['pin'] = ConfigProperty(data_type=int, value_list=[
@@ -51,36 +53,38 @@ class DHT22(Sensor):
             ], default_value=2, label='Delay (in seconds)', group_seq=group_seq)
             cls._config_params['ready_comm_s'] = ConfigProperty(data_type=int, value_list=[
             ], default_value=cls.READY_COMM_MS, label='Delay time before ready for communication (in milliseconds)', group_seq=group_seq)
-            
+
             cls._is_config_params_init = True
         return cls._config_params
-    
+
     def output_config(self) -> dict():
         if self.output_type_unit is not None:
             return self.output_type_unit
-        
+
         config = dict()
         if SensorOutputType.TEMPERATURE in self.output_type:
-            config['temp'] = dict(type=SensorOutputType.TEMPERATURE.name, unit='C')
+            config['temp'] = dict(
+                type=SensorOutputType.TEMPERATURE.name, unit='C')
         if SensorOutputType.HUMIDITY in self.output_type:
             config['hum'] = dict(type=SensorOutputType.HUMIDITY.name, unit='%')
         self.output_type_unit = config
-        
+
         return config
-    
+
     def _configure(self, config: dict):
         self.board_pin = DHT22.convert_value_type(config, 'pin')
         self.gpio_device = DHT22.convert_value_type(config, 'gpio_device')
-        self.delay_second = max(DHT22.convert_value_type(config, 'delay_s'), DHT22.config_params()['delay_s'].default_value)
+        self.delay_second = max(DHT22.convert_value_type(
+            config, 'delay_s'), DHT22.config_params()['delay_s'].default_value)
         self.ready_comm_s = DHT22.convert_value_type(config, 'ready_comm_s')
-        self.init_history_reading(DHT22.convert_value_type(config, 'max_readings'))
-        if self.board_pin is not None and self.gpio_device is not None:
-            is_configured = True
+        self.init_history_reading(
+            DHT22.convert_value_type(config, 'max_readings'))
+        is_configured = self.board_pin is not None and self.gpio_device is not None
         return is_configured
-    
+
     def _postprc_read(self, reading):
         return dict(temp=reading[0], hum=reading[1]) if reading is not None else None
-    
+
     def _pulses_to_binary(self, pulses: array.array, start: int, stop: int) -> int:
         """Takes pulses, a list of transition times, and converts
         them to a 1's or 0's.  The pulses array contains the transition times.
@@ -120,10 +124,10 @@ class DHT22(Sensor):
         req = gpiod.line_request()
         req.consumer = 'sensor_dht22' + str(self.id)
         req.request_type = gpiod.line_request.DIRECTION_OUTPUT
-        line.request(req, default_val=1) # pull up default
+        line.request(req, default_val=1)  # pull up default
         start_time_s = DHT22.START_TIME_MS / 1000
         ready_comm_s = self.ready_comm_s / 1000
-        
+
         line.set_value(1)
         time.sleep(start_time_s)
         line.set_value(0)
@@ -137,18 +141,18 @@ class DHT22(Sensor):
             if dhtval != line.get_value():
                 dhtval = not dhtval  # we toggled
                 transitions.append(time.monotonic())  # save the timestamp
-        
+
         # convert transtions to microsecond delta pulses:
         # use last 81 pulses
         transition_start = max(1, len(transitions) - 81)
         for i in range(transition_start, len(transitions)):
-            pulses_micro_sec = int(1000000 * (transitions[i] - transitions[i - 1]))
+            pulses_micro_sec = int(
+                1000000 * (transitions[i] - transitions[i - 1]))
             pulses.append(min(pulses_micro_sec, 65535))
 
         new_temperature = 0
         new_humidity = 0
 
-        
         # print(len(pulses), "pulses:", [x for x in pulses])
         if len(pulses) < 10:
             # Probably a connection issue!
@@ -160,7 +164,8 @@ class DHT22(Sensor):
 
         buf = array.array("B")
         for byte_start in range(0, 80, 16):
-            buf.append(self._pulses_to_binary(pulses, byte_start, byte_start + 16))
+            buf.append(self._pulses_to_binary(
+                pulses, byte_start, byte_start + 16))
 
         # humidity is 2 bytes
         new_humidity = ((buf[0] << 8) | buf[1]) / 10
@@ -186,6 +191,6 @@ class DHT22(Sensor):
         res = (new_temperature, new_humidity)
 
         return res
-    
+
     def _write(self):
         pass

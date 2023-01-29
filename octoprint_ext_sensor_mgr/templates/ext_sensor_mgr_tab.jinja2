@@ -6,7 +6,7 @@
     <label class="control-label"> {{ _('Selected Sensor')|edq }} </label>
     <div class="controls">
         <select class="input-block-level"
-            data-bind="value: selectedSensorId, options: sensorList, optionsText: function(item) { return item.config.name.value }, optionsValue: 'sensorId', valueAllowUnset: true, event: { change: $root.resetChart}"></select>
+            data-bind="value: selectedSensorId, options: sensorList, optionsText: function(item) { return item.config.name }, optionsValue: 'sensorId', valueAllowUnset: true, event: { change: $root.resetChart}"></select>
     </div>
 </div>
 
@@ -15,7 +15,7 @@
         <tr data-bind="if: output">
             <td>
                 <p class="badge" data-bind="text: sensorType.name"></p>
-                <p data-bind="text: config.name.value"></p>
+                <p data-bind="text: config.name"></p>
             </td>
             <td data-bind="foreach: output" class="sensor-reading-grid">
                 <p data-bind="text: label"> </p>

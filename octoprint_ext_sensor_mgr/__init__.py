@@ -6,7 +6,7 @@ import flask
 from typing import List
 from octoprint_ext_sensor_mgr.logging import OctoprintLogging
 from octoprint_ext_sensor_mgr.sensor.sensor_base import Sensor
-from octoprint_ext_sensor_mgr.sensor.util.config import determine_sensor_config, transform_sensor_config
+from octoprint_ext_sensor_mgr.sensor.util.config import determine_sensor_config, parse_sensor_config, transform_sensor_config
 from octoprint_ext_sensor_mgr.sensor_mngr import SensorManager
 from octoprint_ext_sensor_mgr.sensor.sensor_type import SensorType, SUPPORTED_SENSOR_LIST
 
@@ -71,6 +71,10 @@ class ExtSensorMgrPlugin(octoprint.plugin.SettingsPlugin,
             del_sensor_list = []
             for sensor in data["active_sensor_list"]:
                 ret_sensor = self.sensor_mgr.handle_msg(sensor)
+
+                # trim config
+                parse_sensor_config(
+                    sensor['config'], do_deepcopy=False)
 
                 if ret_sensor is None:
                     del_sensor_list.append(sensor)
