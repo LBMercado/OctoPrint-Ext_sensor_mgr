@@ -13,6 +13,7 @@ $(function () {
 
         // ko variables
         self.sensorList = ko.observableArray();
+        self.graphSensorList = ko.observableArray();
         self.selectedSensorId = ko.observable();
         self.sensorTypeList = ko.observableArray();
         self.chartCfgList = ko.observableArray([]);
@@ -33,6 +34,9 @@ $(function () {
                 y: {
                     suggestedMin: 0,
                 },
+            },
+            animation: {
+                duration: 0,
             },
         };
         self.LOG_TYPE = {
@@ -378,6 +382,15 @@ $(function () {
         };
 
         self.intervalSensorReadCb = function (sensor) {
+            if (!sensor.enabled()) {
+                self._log(
+                    (info =
+                        "intervalSensorReadCb: not proceeding, sensor is disabled"),
+                    (obj = sensor)
+                );
+                return;
+            }
+
             self.getSensorReadHistoryList(sensor.sensorId()).done(
                 (read_history_list) => {
                     if (!read_history_list) {
@@ -397,7 +410,7 @@ $(function () {
                     self.chartCfgList(cfg);
                     self._log(
                         (info =
-                            "initSensorReadingCb (getSensorReadHistoryList): graph config list: "),
+                            "intervalSensorReadCb (getSensorReadHistoryList): graph config list: "),
                         (obj = cfg)
                     );
 
@@ -519,6 +532,7 @@ $(function () {
             self.sensorList().forEach((sensor) => {
                 self.initSensorReadingCb(sensor);
             });
+            self.graphSensorList(self.sensorList().filter((s) => s.enabled()));
 
             self._log(
                 (info = "onBeforeBinding: (1) supported sensor types: "),
@@ -619,6 +633,18 @@ $(function () {
                 const removedList = self.sensorList.remove(
                     (s) => !existSensorIdList.includes(s.sensorId())
                 );
+
+                // synchronize with selectable graph sensors
+                self.graphSensorList(
+                    self.sensorList().filter((s) => s.enabled())
+                );
+                const graphSensor = self
+                    .graphSensorList()
+                    .find((s) => self.selectedSensorId() == s.sensorId());
+                self.selectedSensorId(
+                    graphSensor != null ? graphSensor.sensorId() : null
+                );
+                self.resetChart();
 
                 self._log(
                     (info =
