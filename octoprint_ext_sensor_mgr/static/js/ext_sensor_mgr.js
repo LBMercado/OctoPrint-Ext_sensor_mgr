@@ -38,7 +38,44 @@ $(function () {
             animation: {
                 duration: 0,
             },
+            interaction: {
+                intersect: false,
+                mode: "index",
+            },
+            plugins: {
+                verticalLiner: {},
+            },
         };
+        self.lineDrawPlugin = {
+            id: "verticalLiner",
+            afterInit: (chart, args, opts) => {
+                chart.verticalLiner = {};
+            },
+            afterEvent: (chart, args, options) => {
+                const { inChartArea } = args;
+                chart.verticalLiner = { draw: inChartArea };
+            },
+            beforeTooltipDraw: (chart, args, options) => {
+                const { draw } = chart.verticalLiner;
+                if (!draw) return;
+
+                const { ctx } = chart;
+                const { top, bottom } = chart.chartArea;
+                const { tooltip } = args;
+                const x = tooltip?.caretX;
+                if (!x) return;
+
+                ctx.save();
+
+                ctx.beginPath();
+                ctx.moveTo(x, top);
+                ctx.lineTo(x, bottom);
+                ctx.stroke();
+
+                ctx.restore();
+            },
+        };
+        self.BASE_CHART_PLUGIN = [self.lineDrawPlugin];
         self.LOG_TYPE = {
             INFO: 1,
             ERROR: 2,
@@ -127,7 +164,7 @@ $(function () {
         };
 
         self._propChartConfig = function (config, datasets, options) {
-            if (config) {
+            if (config != null) {
                 config.data.datasets.forEach((ds, idx) => {
                     if (datasets[idx]) {
                         ds.label = datasets[idx].label;
@@ -148,6 +185,7 @@ $(function () {
                 config = {};
                 config.data = { datasets: datasets };
                 config.options = options;
+                config.plugins = self.BASE_CHART_PLUGIN;
             }
 
             return config;
@@ -450,9 +488,10 @@ $(function () {
             }
 
             configList.forEach((config, idx) => {
-                var data = config.data;
-                var options = config.options;
-                var chart = config.chart;
+                const data = config.data;
+                const options = config.options;
+                const chart = config.chart;
+                const plugins = config.plugins;
 
                 if (
                     chart &&
@@ -498,6 +537,7 @@ $(function () {
                         ...options,
                     },
                     data: { ...data },
+                    plugins: [...plugins],
                 };
 
                 if (chart != undefined) {
