@@ -215,6 +215,7 @@ $(function () {
                 (info = "init_config_param: config_param"),
                 (obj = config_param)
             );
+            self._log((info = "init_config_param: value"), (obj = value));
             // check if default value is enum
             if (
                 config_param.default_value != null &&
@@ -263,11 +264,18 @@ $(function () {
             } else {
                 config = sensor.config;
                 for (const k in supportedConfig) {
-                    item = { ...supportedConfig[k] };
-                    self.init_config_param(
-                        item,
-                        config.hasOwnProperty(k) ? config[k].value : null
-                    );
+                    const item = { ...supportedConfig[k] };
+                    var currValue = null;
+                    if (config.hasOwnProperty(k)) {
+                        if (config[k].hasOwnProperty("value")) {
+                            currValue = ko.isObservable(config[k].value)
+                                ? config[k].value()
+                                : config[k].value;
+                        } else {
+                            currValue = config[k]; // coming directly from saved settings
+                        }
+                    }
+                    self.init_config_param(item, currValue);
                     config[k] = item;
                 }
             }
