@@ -35,6 +35,11 @@ $(function () {
                     suggestedMin: 0,
                 },
             },
+            elements: {
+                point: {
+                    radius: 0,
+                },
+            },
             animation: {
                 duration: 0,
             },
