@@ -34,7 +34,7 @@ class Pms7003(Sensor):
             cls._config_params['max_readings'].default_value = 60
             cls._config_params['serial_dev'] = ConfigProperty(data_type=str, value_list=serial_dev_list(
             ), default_value=None, label='Serial Device (/dev/ttySx)', group_seq=('Sensor Configuration',))
-            
+
             cls._is_config_params_init = True
         return cls._config_params
 
@@ -64,15 +64,6 @@ class Pms7003(Sensor):
 
         is_configured = self.sensor_intf is not None
         return is_configured
-
-    def _after_toggle(self):
-        if self.sensor_intf is None:
-            return
-
-        if not self.enabled:
-            self.sensor_intf.sleep()
-        else:
-            self.sensor_intf.wakeup()
 
     def _postprc_read(self, reading):
         return dict(pm1_0=reading['pm1_0'], pm2_5=reading['pm2_5'], pm10=reading['pm10'])
