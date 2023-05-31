@@ -1,5 +1,9 @@
 {
-    "jshint.options": {
-        "esversion": 11
-    }
+  "jshint.options": {
+    "esversion": 11
+  },
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.autopep8"
+  },
+  "python.formatting.provider": "none"
 }
