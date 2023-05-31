@@ -143,6 +143,32 @@ $(function () {
             );
         };
 
+        self.getSensorInputConfig = function (sensorId) {
+            if (!sensorId) {
+                return;
+            }
+            return OctoPrint.simpleApiCommand(
+                "ext_sensor_mgr",
+                "sensor_input_config",
+                { sensor_id: sensorId }
+            );
+        };
+
+        self.sendSensorInputRequest = function (sensor, input) {
+            if (input.datatype == "bool")
+                input.value = input.value == null ? false : !input.value;
+
+            OctoPrint.simpleApiCommand("ext_sensor_mgr", "write_sensor", {
+                sensor_id: sensor.sensorId(),
+                input_id: input.key,
+                value: input.value,
+            }).then(() => {
+                self.readSensor(sensor.sensorId()).then((reading) => {
+                    input.value = reading[input.key];
+                });
+            });
+        };
+
         self.readSensor = function (sensorId) {
             return OctoPrint.simpleApiCommand("ext_sensor_mgr", "read_sensor", {
                 sensor_id: sensorId,
@@ -299,6 +325,14 @@ $(function () {
             );
         };
 
+        self.mapSensorInputStd = function (sensor, config) {
+            sensor.inputStd = { ...config };
+            self._log(
+                (info = "mapSensorOutputStd: out sensor: "),
+                (obj = sensor)
+            );
+        };
+
         self.genSensorOutputObs = function (sensor) {
             var output_list = [];
             const outputStd = sensor.outputStd;
@@ -337,6 +371,29 @@ $(function () {
             );
         };
 
+        self.genSensorInputObs = function (sensor) {
+            var input_list = [];
+            const inputStd = sensor.inputStd;
+
+            Object.entries(inputStd).forEach((stdEntry) => {
+                const [k, std] = stdEntry;
+
+                var input = {
+                    key: k,
+                    label: self._capitalizeStr(std.name),
+                    datatype: std.datatype,
+                    value: null,
+                };
+                input_list.push(input);
+            });
+
+            sensor.input(input_list);
+            self._log(
+                (info = "genSensorInputObs: in sensor: "),
+                (obj = sensor)
+            );
+        };
+
         self.prcSubOutput = function (outputObsArr, subOutput) {
             if (!ko.isObservableArray(outputObsArr)) {
                 self._log(
@@ -347,7 +404,7 @@ $(function () {
                 return;
             }
             // multiple output
-            if (typeof subOutput === "object") {
+            if (subOutput !== null && typeof subOutput === "object") {
                 for (const [outputName, outputVal] of Object.entries(
                     subOutput
                 )) {
@@ -418,7 +475,7 @@ $(function () {
                         ? displVal.toFixed(2)
                         : displVal,
                     " ",
-                    unit()
+                    (ko.isObservable(unit) ? unit() : unit) ?? ""
                 );
                 return displ;
             });
@@ -469,8 +526,13 @@ $(function () {
             );
             if (!target.output) target.output = ko.observable();
             else target.output();
+            if (!target.input) target.input = ko.observable();
+            else target.input();
 
             const output_config_prom = self.getSensorOutputConfig(
+                target.sensorId()
+            );
+            const input_config_prom = self.getSensorInputConfig(
                 target.sensorId()
             );
             if (output_config_prom) {
@@ -479,7 +541,18 @@ $(function () {
                     self.genSensorOutputObs(target);
                     self._log(
                         (info =
-                            "initSensorReadingCb: (2) finish init sensor: "),
+                            "initSensorReadingCb: (2) finish init output sensor: "),
+                        (obj = target)
+                    );
+                });
+            }
+            if (input_config_prom) {
+                input_config_prom.then((config) => {
+                    self.mapSensorInputStd(target, config);
+                    self.genSensorInputObs(target);
+                    self._log(
+                        (info =
+                            "initSensorReadingCb: (3) finish init input sensor: "),
                         (obj = target)
                     );
                 });

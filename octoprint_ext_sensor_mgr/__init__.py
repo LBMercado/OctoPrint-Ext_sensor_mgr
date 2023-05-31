@@ -6,7 +6,7 @@ import flask
 from typing import List
 from octoprint_ext_sensor_mgr.logging import OctoprintLogging
 from octoprint_ext_sensor_mgr.sensor.sensor_base import Sensor
-from octoprint_ext_sensor_mgr.sensor.util.config import determine_sensor_config, parse_sensor_config, transform_sensor_config
+from octoprint_ext_sensor_mgr.sensor.util.config import determine_sensor_config, parse_sensor_config, transform_io_config, transform_sensor_config
 from octoprint_ext_sensor_mgr.sensor_mngr import SensorManager
 from octoprint_ext_sensor_mgr.sensor.sensor_type import SensorType, SUPPORTED_SENSOR_LIST
 
@@ -130,16 +130,34 @@ class ExtSensorMgrPlugin(octoprint.plugin.SettingsPlugin,
             sensor = self.sensor_mgr.sensor(sensor_id)
             if sensor is not None:
                 return flask.jsonify(sensor.read())
+            return "Not Found", 404
+        elif command == "write_sensor":
+            sensor_id = int(data.get('sensor_id'))
+            input_id = data.get('input_id')
+            value = data.get('value')
+            sensor = self.sensor_mgr.sensor(sensor_id)
+            if sensor is not None and value is not None and input_id is not None:
+                sensor.write(input_id, value)
+            return "Success", 200
         elif command == "hist_reading_list":
             sensor_id = int(data.get('sensor_id'))
             sensor = self.sensor_mgr.sensor(sensor_id)
             if sensor is not None and sensor.allow_history:
                 return flask.jsonify(sensor.history_reading_list())
+            return "Not Found", 404
         elif command == "sensor_output_config":
             sensor_id = int(data.get('sensor_id'))
             sensor = self.sensor_mgr.sensor(sensor_id)
             if sensor is not None:
                 return flask.jsonify(sensor.output_config())
+            return "Not Found", 404
+        elif command == "sensor_input_config":
+            sensor_id = int(data.get('sensor_id'))
+            sensor = self.sensor_mgr.sensor(sensor_id)
+            if sensor is not None:
+                return flask.jsonify(transform_io_config(sensor.input_config()))
+            return "Not Found", 404
+        return "Invalid command", 404
 
     # ~~ SimpleApiPlugin hook
 
@@ -147,8 +165,10 @@ class ExtSensorMgrPlugin(octoprint.plugin.SettingsPlugin,
         return dict(
             config_param_list=["sensor_type_id"],
             read_sensor=["sensor_id"],
+            write_sensor=["sensor_id", "input_id", "value"],
             hist_reading_list=["sensor_id"],
             sensor_output_config=["sensor_id"],
+            sensor_input_config=["sensor_id"],
         )
 
     # ~~ Softwareupdate hook

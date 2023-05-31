@@ -3,6 +3,8 @@ from octoprint_ext_sensor_mgr.sensor.config_property import ConfigProperty
 from octoprint_ext_sensor_mgr.sensor.sensor_base import Sensor
 from octoprint_ext_sensor_mgr.sensor.sensor_env3_unit import Env3Unit
 from octoprint_ext_sensor_mgr.sensor.sensor_env3_unit_mock import Env3Unit as Env3UnitMock
+from octoprint_ext_sensor_mgr.sensor.sensor_onoff import OnOff
+from octoprint_ext_sensor_mgr.sensor.sensor_onoff_mock import OnOff as OnOffMock
 from octoprint_ext_sensor_mgr.sensor.sensor_pms7003 import Pms7003
 from octoprint_ext_sensor_mgr.sensor.sensor_pms7003_mock import Pms7003 as Pms7003Mock
 from octoprint_ext_sensor_mgr.sensor.sensor_qmp6988 import Qmp6988
@@ -44,6 +46,9 @@ def sensor_cls(sensorType: SensorType, is_test=False):
     elif sensorType == sensorType.ENV3_UNIT:
         cls = Env3Unit
         cls_mock = Env3UnitMock
+    elif sensorType == sensorType.ONOFF:
+        cls = OnOff
+        cls_mock = OnOffMock
 
     if not is_test:
         return cls
@@ -80,4 +85,18 @@ def parse_sensor_config(config: Dict[str, dict], do_deepcopy=True):
         if isinstance(ret_config[k], dict):
             ret_config[k] = ret_config[k]['value'] if 'value' in ret_config[k] else None
 
+    return ret_config
+
+
+def transform_io_config(config: dict, do_deepcopy=True):
+    """
+    @config: input/output config to transform
+    """
+    if config is None:
+        return None
+    ret_config = copy.deepcopy(config) if do_deepcopy else config
+
+    for io_config in ret_config.values():
+        if 'datatype' in io_config:
+            io_config['datatype'] = io_config['datatype'].__name__
     return ret_config

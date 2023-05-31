@@ -49,6 +49,3 @@ class Pms7003(Pms7003Actual):
         ret = dict(pm1_0=pm1_0, pm2_5=pm2_5, pm10=pm10)
 
         return ret
-
-    def _write(self):
-        pass

@@ -191,6 +191,3 @@ class DHT22(Sensor):
         res = (new_temperature, new_humidity)
 
         return res
-
-    def _write(self):
-        pass

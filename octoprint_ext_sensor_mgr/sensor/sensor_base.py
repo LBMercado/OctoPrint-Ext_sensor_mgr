@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Dict, Union
 from datetime import datetime
 from octoprint_ext_sensor_mgr.sensor.config_property import ConfigProperty
+from octoprint_ext_sensor_mgr.sensor.sensor_in_type import SensorInputType
 from octoprint_ext_sensor_mgr.sensor.sensor_out_type import SensorOutputType
 
 
@@ -15,7 +16,9 @@ class Sensor:
         super().__init__()
         self.enabled = False
         self.is_configured = False
-        self.output_type = None
+        self.output_type: SensorOutputType = None
+        self.input_type: SensorInputType = None
+        self._input_config: dict = None
         self.output_unit_seq = ()
         self.id = None
         self.type = None
@@ -61,6 +64,10 @@ class Sensor:
     def output_config(self) -> dict():
         raise NotImplementedError()
 
+    def input_config(self) -> dict():
+        if self._input_config is not None:
+            return self._input_config
+
     def init_history_reading(self, max_readings=1):
         self.max_readings = max_readings
         self.past_readings = deque(maxlen=self.max_readings)
@@ -105,7 +112,7 @@ class Sensor:
         raise NotImplementedError()
 
     def _postprc_read(self, reading):
-        raise NotImplementedError()
+        return reading
 
     def read(self):
         if self.is_configured and self.enabled:
@@ -113,9 +120,15 @@ class Sensor:
             self._add_reading(reading)
             return reading
 
-    def _write(self):
+    def _write(self, input_id, value):
         raise NotImplementedError()
 
-    def write(self):
-        if self.is_configured and self.enabled:
-            return self._write()
+    def write(self, input_id, value):
+        """
+        @input_id: specific input in sensor to refer to
+        @value: value to write
+        """
+        config = self.input_config()
+
+        if self.is_configured and self.enabled and config is not None and input_id in config:
+            return self._write(input_id, config[input_id]['datatype'](value))

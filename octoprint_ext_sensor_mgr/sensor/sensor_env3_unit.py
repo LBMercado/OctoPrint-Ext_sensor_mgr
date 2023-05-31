@@ -114,6 +114,3 @@ class Env3Unit(Sensor):
         out['psr'] = qmp6988_out['psr']
 
         return out
-
-    def _write(self):
-        pass

@@ -12,7 +12,7 @@
 
 <table class="table table-bordered" data-bind="if: sensorList().length > 0">
     <tbody data-bind="foreach: sensorList">
-        <tr data-bind="if: output">
+        <tr>
             <td>
                 <p class="badge" data-bind="text: sensorType.name, css: { 'badge-important': !enabled() }"></p>
                 <p data-bind="text: config.name"></p>
@@ -21,6 +21,12 @@
                 <p data-bind="text: label"> </p>
                 <div data-bind="foreach: suboutput">
                     <p data-bind="text: $root.fmtSensorReadingCb($parent.unit, val, name)"> </p>
+                </div>
+            </td>
+            <td data-bind="foreach: input" class="sensor-reading-grid">
+                <div data-bind="if: datatype == 'bool'">
+                    <button
+                        data-bind="text: label, click: $root.sendSensorInputRequest.bind($data, $parent)"></button>
                 </div>
             </td>
         </tr>

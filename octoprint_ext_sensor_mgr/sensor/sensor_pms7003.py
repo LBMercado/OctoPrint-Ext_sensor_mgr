@@ -70,6 +70,3 @@ class Pms7003(Sensor):
 
     def _read(self):
         return self.sensor_intf.read()
-
-    def _write(self):
-        pass
