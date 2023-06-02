@@ -32,6 +32,23 @@ class ExtSensorMgrPlugin(octoprint.plugin.SettingsPlugin,
         self._log("init_sensors: interface-enabled sensors = ",
                   self.sensor_mgr.sensor_list())
 
+    def on_sensor_write(self, sensor: Sensor):
+        # trigger persistence update for sensor
+        sensor_list = self._settings.get(["active_sensor_list"])
+        for saved_sensor in sensor_list:
+            if saved_sensor["sensorId"] == sensor.id:
+                input_config = sensor.input_config()
+                for (key, config) in input_config.items():
+                    saved_sensor['input_values'][key] = config["value"]
+                self._settings.set(
+                    ["active_sensor_list"], sensor_list)
+                self._settings.save()
+                self._log("on_sensor_write: (1) done processing sensor = ",
+                          saved_sensor)
+                self._log("on_sensor_write: (2) input config = ",
+                          input_config)
+                exit
+
     def read_sensors(self):
         for sensor in self.sensor_mgr.sensor_list():
             sensor.read()
@@ -138,6 +155,7 @@ class ExtSensorMgrPlugin(octoprint.plugin.SettingsPlugin,
             sensor = self.sensor_mgr.sensor(sensor_id)
             if sensor is not None and value is not None and input_id is not None:
                 sensor.write(input_id, value)
+                self.on_sensor_write(sensor)
             return "Success", 200
         elif command == "hist_reading_list":
             sensor_id = int(data.get('sensor_id'))

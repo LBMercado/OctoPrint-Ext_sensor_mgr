@@ -163,9 +163,13 @@ $(function () {
                 input_id: input.key,
                 value: input.value,
             }).then(() => {
-                self.readSensor(sensor.sensorId()).then((reading) => {
-                    input.value = reading[input.key];
-                });
+                self.readSensor(sensor.sensorId())
+                    .then((reading) => {
+                        input.value = reading[input.key];
+                    })
+                    .then(() => {
+                        self.intervalSensorReadCb(sensor);
+                    });
             });
         };
 
@@ -372,22 +376,20 @@ $(function () {
         };
 
         self.genSensorInputObs = function (sensor) {
-            var input_list = [];
+            const inputList = [];
             const inputStd = sensor.inputStd;
 
             Object.entries(inputStd).forEach((stdEntry) => {
                 const [k, std] = stdEntry;
-
-                var input = {
+                const input = {
                     key: k,
                     label: self._capitalizeStr(std.name),
                     datatype: std.datatype,
-                    value: null,
+                    value: sensor.input_values[k],
                 };
-                input_list.push(input);
+                inputList.push(input);
             });
-
-            sensor.input(input_list);
+            sensor.input(inputList);
             self._log(
                 (info = "genSensorInputObs: in sensor: "),
                 (obj = sensor)

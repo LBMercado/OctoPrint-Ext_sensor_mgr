@@ -53,6 +53,13 @@ class SensorManager:
             sensor.id = sensor_id if sensor_id is not None else self._gen_sensor_id()
             self._logger.debug(
                 context="SensorManager.handle_msg: constructed new sensor", ref_object=sensor)
+
+        if 'input_values' in msg:
+            for (input_id, val) in msg['input_values'].items():
+                sensor.preload_input(input_id, val)
+            self._logger.debug(
+                context="SensorManager.handle_msg: processed initial inputs", ref_object=sensor.input_config())
+
         sensor.toggle(enabled)
         sensor.configure(config)
         self.add_sensor(sensor)

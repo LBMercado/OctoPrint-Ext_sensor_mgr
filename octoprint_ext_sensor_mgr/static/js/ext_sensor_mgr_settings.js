@@ -156,6 +156,7 @@ $(function () {
                 enabled: ko.observable(false),
                 sensorId: ko.observable(),
                 config: { name: { value: ko.observable("New Sensor") } },
+                input_values: {},
             };
             self.sensorList.push(sensor);
             self._log((info = "addSensor: (1) new sensor = " + sensor));

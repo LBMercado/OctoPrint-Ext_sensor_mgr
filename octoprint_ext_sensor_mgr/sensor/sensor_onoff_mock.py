@@ -49,4 +49,4 @@ class OnOff(OnOffActual):
         """
         @value: true if on, false if off
         """
-        self.is_on = value
+        self._input_config[input_id]['value'] = value

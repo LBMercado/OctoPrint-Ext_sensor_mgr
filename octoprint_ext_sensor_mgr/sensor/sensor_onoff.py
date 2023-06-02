@@ -15,9 +15,9 @@ class OnOff(Sensor):
         super().__init__()
         self.type = SensorType.ONOFF
         self.output_type = SensorOutputType.TOGGLE
-        self.output_type_unit = None
         self.input_type = SensorInputType.TOGGLE
-        self.is_on = None
+        self._input_config = self.input_config()
+        self._output_config = self.output_config()
 
     def __del__(self):
         pass
@@ -45,26 +45,25 @@ class OnOff(Sensor):
         return cls._config_params
 
     def output_config(self) -> dict():
-        if self.output_type_unit is not None:
-            return self.output_type_unit
+        if self._output_config is not None:
+            return self._output_config
 
         config = dict()
         if SensorOutputType.TOGGLE in self.output_type:
             config['toggle'] = dict(
                 type=SensorOutputType.TOGGLE.name, unit=None)
-        self.output_type_unit = config
+        self._output_config = config
 
         return config
 
     def input_config(self) -> dict():
-        config = super().input_config()
-        if config is not None:
-            return config
+        if self._input_config is not None:
+            return self._input_config
 
         config = dict()
         if SensorInputType.TOGGLE in self.input_type:
             config['toggle'] = dict(
-                name='Toggle', datatype=bool)
+                name='Toggle', datatype=bool, value=False)
         self._input_config = config
 
         return config
@@ -90,11 +89,8 @@ class OnOff(Sensor):
         if not self.enabled:
             self.gpiod_line.release()
 
-    def _postprc_read(self, reading):
-        return reading
-
     def _read(self):
-        return dict(toggle=self.is_on)
+        return copy.deepcopy(self._input_config)
 
     def _write(self, input_id, value):
         level = int(not value) if self.is_active_low else int(value)
@@ -104,4 +100,4 @@ class OnOff(Sensor):
                 self.gpiod_req, default_val=self.is_active_low)
 
         self.gpiod_line.set_value(level)
-        self.is_on = value
+        self._input_config[input_id]['value'] = value
