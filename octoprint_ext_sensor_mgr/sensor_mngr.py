@@ -55,10 +55,13 @@ class SensorManager:
                 context="SensorManager.handle_msg: constructed new sensor", ref_object=sensor)
 
         if 'input_values' in msg:
-            for (input_id, val) in msg['input_values'].items():
-                sensor.preload_input(input_id, val)
-            self._logger.debug(
-                context="SensorManager.handle_msg: processed initial inputs", ref_object=sensor.input_config())
+            input_config = sensor.input_config()
+            if input_config is not None:
+                for (input_id, conf) in input_config.items():
+                    sensor.preload_input(
+                        input_id, msg['input_values'][input_id] if msg['input_values'] is not None and input_id in msg['input_values'] else conf['value'])
+                self._logger.debug(
+                    context="SensorManager.handle_msg: processed initial inputs", ref_object=sensor.input_config())
 
         sensor.toggle(enabled)
         sensor.configure(config)

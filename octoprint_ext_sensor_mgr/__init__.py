@@ -97,6 +97,13 @@ class ExtSensorMgrPlugin(octoprint.plugin.SettingsPlugin,
                     del_sensor_list.append(sensor)
                 else:
                     sensor["sensorId"] = ret_sensor.id
+                    input_config = ret_sensor.input_config()
+                    if input_config is not None:
+                        if sensor['input_values'] is None:
+                            sensor['input_values'] = dict()
+
+                        for (key, config) in input_config.items():
+                            sensor['input_values'][key] = config["value"]
 
             self._log("on_settings_save: Remove invalid stored sensors = ",
                       del_sensor_list)
