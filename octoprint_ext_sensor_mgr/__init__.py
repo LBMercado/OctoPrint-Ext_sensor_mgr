@@ -224,7 +224,7 @@ class ExtSensorMgrPlugin(octoprint.plugin.SettingsPlugin,
 # can be overwritten via __plugin_xyz__ control properties. See the documentation for that.
 __plugin_name__ = "External Sensor Manager"
 __plugin_description__ = "Monitor and configure your sensors' with this simple interface"
-__plugin_version__ = "0.1.0"
+__plugin_version__ = "0.1.1"
 
 # Set the Python version your plugin is compatible with below. Recommended is Python 3 only for all new plugins.
 # OctoPrint 1.4.0 - 1.7.x run under both Python 3 and the end-of-life Python 2.
