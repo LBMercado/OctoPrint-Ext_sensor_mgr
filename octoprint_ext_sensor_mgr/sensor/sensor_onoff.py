@@ -86,7 +86,7 @@ class OnOff(Sensor):
         return is_configured
 
     def _after_toggle(self):
-        if not self.enabled:
+        if self.is_configured and not self.enabled:
             self.gpiod_line.release()
 
     def _read(self):
