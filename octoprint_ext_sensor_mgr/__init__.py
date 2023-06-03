@@ -140,14 +140,14 @@ class ExtSensorMgrPlugin(octoprint.plugin.SettingsPlugin,
             try:
                 sensorType = SensorType(int(sensorType))
             except ValueError:
-                return None
+                return flask.abort(flask.Response("Not Found"))
             return transform_sensor_config(determine_sensor_config(sensorType=sensorType, is_test=self._settings.get(["is_mock_test"])))
         elif command == "read_sensor":
             sensor_id = int(data.get('sensor_id'))
             sensor = self.sensor_mgr.sensor(sensor_id)
             if sensor is not None:
                 return flask.jsonify(sensor.read())
-            return "Not Found", 404
+            return flask.Response("Not Found")
         elif command == "write_sensor":
             sensor_id = int(data.get('sensor_id'))
             input_id = data.get('input_id')
@@ -156,26 +156,28 @@ class ExtSensorMgrPlugin(octoprint.plugin.SettingsPlugin,
             if sensor is not None and value is not None and input_id is not None:
                 sensor.write(input_id, value)
                 self.on_sensor_write(sensor)
-            return "Success", 200
+            else:
+                return flask.abort(flask.Response("Not Found"))
+            return flask.Response("Success", 204)
         elif command == "hist_reading_list":
             sensor_id = int(data.get('sensor_id'))
             sensor = self.sensor_mgr.sensor(sensor_id)
             if sensor is not None and sensor.allow_history:
                 return flask.jsonify(sensor.history_reading_list())
-            return "Not Found", 404
+            return flask.abort(flask.Response("Not Found"))
         elif command == "sensor_output_config":
             sensor_id = int(data.get('sensor_id'))
             sensor = self.sensor_mgr.sensor(sensor_id)
             if sensor is not None:
                 return flask.jsonify(sensor.output_config())
-            return "Not Found", 404
+            return flask.abort(flask.Response("Not Found"))
         elif command == "sensor_input_config":
             sensor_id = int(data.get('sensor_id'))
             sensor = self.sensor_mgr.sensor(sensor_id)
             if sensor is not None:
                 return flask.jsonify(transform_io_config(sensor.input_config()))
-            return "Not Found", 404
-        return "Invalid command", 404
+            return flask.abort(flask.Response("Not Found"))
+        return flask.abort(flask.Response("Invalid command"))
 
     # ~~ SimpleApiPlugin hook
 

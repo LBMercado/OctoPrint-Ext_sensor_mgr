@@ -162,15 +162,14 @@ $(function () {
                 sensor_id: sensor.sensorId(),
                 input_id: input.key,
                 value: input.value,
-            }).then(() => {
-                self.readSensor(sensor.sensorId())
-                    .then((reading) => {
-                        input.value = reading[input.key];
-                    })
-                    .then(() => {
-                        self.intervalSensorReadCb(sensor);
-                    });
-            });
+            })
+                .then(() => {
+                    return self.readSensor(sensor.sensorId());
+                })
+                .then((reading) => {
+                    input.value = reading[input.key];
+                    self.intervalSensorReadCb(sensor);
+                });
         };
 
         self.readSensor = function (sensorId) {
