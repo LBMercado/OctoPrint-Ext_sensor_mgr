@@ -540,6 +540,7 @@ $(function () {
                 output_config_prom.then((config) => {
                     self.mapSensorOutputStd(target, config);
                     self.genSensorOutputObs(target);
+                    self.intervalSensorReadCb(target);
                     self._log(
                         (info =
                             "initSensorReadingCb: (2) finish init output sensor: "),
