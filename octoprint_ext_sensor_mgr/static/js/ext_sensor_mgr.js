@@ -578,21 +578,21 @@ $(function () {
                     chart.data &&
                     self.selectedSensorId() == sensorId
                 ) {
-                    var chartDatasetList = chart.data.datasets;
-                    var chartOpt = chart.options;
+                    var datasets = chart.data.datasets;
 
                     // just update
-                    Object.keys(options).forEach((optionKey) => {
-                        chartOpt[optionKey] = options[optionKey];
-                    });
+                    chart.options = {
+                        ...chart.options,
+                        ...options,
+                    };
 
-                    if (chartDatasetList && chartDatasetList.length == 0) {
+                    if (datasets && datasets.length == 0) {
                         chart.data = { ...data };
                     } else {
-                        Object.keys(data.datasets).forEach((datasetKey) => {
-                            const newData = data.datasets[datasetKey].data;
+                        Object.entries(data.datasets).forEach((entry) => {
+                            const [key, dataset] = entry;
 
-                            chartDatasetList[datasetKey].data = newData;
+                            datasets[key].data = dataset.data;
                         });
                     }
 
