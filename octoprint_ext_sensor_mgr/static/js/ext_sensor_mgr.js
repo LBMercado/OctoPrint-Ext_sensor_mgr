@@ -586,15 +586,7 @@ $(function () {
                         ...options,
                     };
 
-                    if (datasets && datasets.length == 0) {
-                        chart.data = { ...data };
-                    } else {
-                        Object.entries(data.datasets).forEach((entry) => {
-                            const [key, dataset] = entry;
-
-                            datasets[key].data = dataset.data;
-                        });
-                    }
+                    chart.data = { ...chart.data, ...data };
 
                     self._log(
                         (info = "build_graph: update graph data: "),
