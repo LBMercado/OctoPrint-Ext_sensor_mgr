@@ -37,7 +37,7 @@ class OnOff(Sensor):
             cls._config_params['gpio_device'] = ConfigProperty(data_type=str, value_list=gpio_dev_list(
             ), default_value=None, label='GPIO Device', group_seq=group_seq)
             cls._config_params['pin'] = ConfigProperty(data_type=int, value_list=[
-            ], default_value=None, label='Pin (WiringPi pin)', group_seq=group_seq)
+            ], default_value=None, label='Pin (BCM pin)', group_seq=group_seq)
             cls._config_params['is_active_low'] = ConfigProperty(data_type=bool, value_list=[
                 True, False], default_value=False, label='Is active low?', group_seq=group_seq)
 

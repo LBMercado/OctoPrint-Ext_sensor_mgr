@@ -48,7 +48,7 @@ class DHT22(Sensor):
             cls._config_params['gpio_device'] = ConfigProperty(data_type=str, value_list=gpio_dev_list(
             ), default_value=None, label='GPIO Device', group_seq=group_seq)
             cls._config_params['pin'] = ConfigProperty(data_type=int, value_list=[
-            ], default_value=None, label='Pin (WiringPi pin)', group_seq=group_seq)
+            ], default_value=None, label='Pin (BCM pin)', group_seq=group_seq)
             cls._config_params['delay_s'] = ConfigProperty(data_type=int, value_list=[
             ], default_value=2, label='Delay (in seconds)', group_seq=group_seq)
             cls._config_params['ready_comm_s'] = ConfigProperty(data_type=int, value_list=[
